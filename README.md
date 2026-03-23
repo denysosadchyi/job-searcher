@@ -1,6 +1,7 @@
 # Job Search Automation
 
 Автоматизований пошук вакансій з AI-аналізом та веб-дашбордом.
+
 <img width="855" height="585" alt="image" src="https://github.com/user-attachments/assets/68352b33-3946-483f-be53-8d3d77421b20" />
 
 
