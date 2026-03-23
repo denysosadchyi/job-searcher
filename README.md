@@ -1,81 +1,86 @@
 # Job Search Automation
 
-Automated job vacancy monitoring with AI-powered analysis and a mobile-first web dashboard.
+Автоматизований пошук вакансій з AI-аналізом та веб-дашбордом.
 
-## What it does
+## Що робить
 
-- Monitors Ukrainian job boards (Djinni, DOU, Work.ua) every 2 hours
-- AI analyzes each vacancy against your profile (fit score 1-10)
-- Web dashboard with filters, search, and delete
-- Skips low-score vacancies (score <= 2) automatically
-- Free: uses Groq API (Llama 3.3 70B) for analysis
+- Моніторить українські job-борди (Djinni, DOU, Work.ua) кожні 2 години
+- AI аналізує кожну вакансію під ваш профіль (скор відповідності 1-10)
+- Веб-дашборд з фільтрами, пошуком та видаленням (mobile-first)
+- Автоматично пропускає нерелевантні вакансії (скор <= 2)
+- Безкоштовно: використовує Groq API (Llama 3.3 70B) для аналізу
 
-## Quick Start (5 minutes)
+## Швидкий старт (5 хвилин)
 
-### 1. Clone and edit config
+### 1. Клонуйте та відредагуйте конфіг
 
 ```bash
-cp -r job-search-template ~/job-search
+git clone https://github.com/denysosadchyi/job-searcher.git ~/job-search
 cd ~/job-search
-nano config.py    # <-- Edit YOUR profile, keywords, salary, etc.
+nano config.py    # <-- Впишіть СВІЙ профіль, ключові слова, зарплату тощо
 ```
 
-### 2. Run setup
+### 2. Отримайте безкоштовний Groq API ключ
+
+1. Зареєструйтесь на https://console.groq.com
+2. Створіть API ключ
+3. Впишіть його в `config.py` → `GROQ_API_KEY`
+
+### 3. Запустіть налаштування
 
 ```bash
 python3 setup.py
 ```
 
-This will:
-- Generate `profile.md` from your config
-- Create `vacancies.md` with your search URLs
-- Install Flask if needed
-- Offer to set up systemd (web server) and cron (auto-check)
+Це створить:
+- `profile.md` з вашого конфігу
+- `vacancies.md` з пошуковими URL
+- Запропонує налаштувати systemd (веб-сервер) та cron (автоперевірка)
 
-### 3. First run
+### 4. Перший запуск
 
 ```bash
-python3 check_new.py     # Find vacancies
-python3 analyze_new.py   # Analyze them with AI
+python3 check_new.py     # Знайти вакансії
+python3 analyze_new.py   # Проаналізувати AI
 ```
 
-### 4. Open dashboard
+### 5. Відкрийте дашборд
 
 ```
-http://YOUR_SERVER_IP:8080
+http://IP_ВАШОГО_СЕРВЕРА:8080
 ```
 
-## What to customize in config.py
+## Що змінити в config.py
 
-| Section | What to change |
+| Секція | Що змінити |
 |---|---|
-| `PROFILE` | Your name, target role, experience, salary range |
-| `TARGET` | What you're looking for (bullet points) |
-| `NOT_INTERESTED` | What to avoid |
-| `FIT_CRITERIA` | Scoring table for AI |
-| `KEY_EXPERIENCE` | Your achievements for matching |
-| `SEARCH_KEYWORDS` | Search queries for job boards |
-| `TITLE_KEYWORDS` | Words that must be in vacancy title |
-| `SOURCES` | Job board URLs (change search queries!) |
-| `GROQ_API_KEY` | Your free API key from console.groq.com |
+| `PROFILE` | Ваше ім'я, цільова роль, досвід, діапазон зарплати |
+| `TARGET` | Що шукаєте (буллет-поінти) |
+| `NOT_INTERESTED` | Що не цікавить |
+| `FIT_CRITERIA` | Таблиця скорингу для AI |
+| `KEY_EXPERIENCE` | Ваші досягнення для порівняння |
+| `SEARCH_KEYWORDS` | Пошукові запити для job-бордів |
+| `TITLE_KEYWORDS` | Слова, які мають бути в назві вакансії |
+| `SOURCES` | URL job-бордів (змініть пошукові запити!) |
+| `GROQ_API_KEY` | Ваш безкоштовний ключ з console.groq.com |
 
-## File Structure
+## Структура файлів
 
 ```
 job-search/
-  config.py          # <-- YOUR settings (edit this!)
-  setup.py           # Run once after editing config
-  app.py             # Web server (Flask)
-  index.html         # Dashboard UI
-  check_new.py       # Vacancy scraper (cron)
-  analyze_new.py     # AI analyzer (Groq)
-  profile.md         # Auto-generated from config
-  vacancies.md       # Vacancy list (auto-updated)
-  analyses.json      # AI analysis results
-  check.log          # Scraper log
+  config.py          # <-- ВАШІ налаштування (редагуйте це!)
+  setup.py           # Запустити раз після редагування конфігу
+  app.py             # Веб-сервер (Flask)
+  index.html         # UI дашборду
+  check_new.py       # Скрапер вакансій (cron)
+  analyze_new.py     # AI аналізатор (Groq)
+  profile.md         # Автогенерований з конфігу
+  vacancies.md       # Список вакансій (оновлюється автоматично)
+  analyses.json      # Результати AI аналізу
+  check.log          # Лог скрапера
 ```
 
-## Examples: config.py for different roles
+## Приклади config.py для різних ролей
 
 ### Python Developer
 ```python
@@ -121,30 +126,73 @@ SOURCES = {
 }
 ```
 
-## Requirements
+### Project Manager
+```python
+SEARCH_KEYWORDS = ["project manager", "product manager", "scrum master"]
+TITLE_KEYWORDS = ["project", "product", "manager", "scrum", "agile"]
+SOURCES = {
+    "Djinni": {"enabled": True, "url": "https://djinni.co/jobs/keyword-project+manager/"},
+    "DOU": {"enabled": True, "url": "https://jobs.dou.ua/vacancies/?search=Project+Manager"},
+    "Work.ua": {"enabled": True, "url": "https://www.work.ua/en/jobs-project+manager/"},
+}
+```
+
+## Вимоги
 
 - Python 3.8+
 - Flask (`pip install flask`)
-- Groq API key (free: https://console.groq.com)
-- Linux server (Ubuntu recommended) for 24/7 monitoring
-  - Also works on Mac/Windows for manual runs
+- Groq API ключ (безкоштовно: https://console.groq.com)
+- Linux сервер (рекомендовано Ubuntu) для моніторингу 24/7
+  - Також працює на Mac/Windows для ручного запуску
 
-## Manual commands
+## Ручні команди
 
 ```bash
-# Check for new vacancies now
+# Перевірити нові вакансії зараз
 python3 check_new.py
 
-# Analyze unanalyzed vacancies
+# Проаналізувати непроаналізовані вакансії
 python3 analyze_new.py
 
-# Start web server manually
+# Запустити веб-сервер вручну
 python3 app.py
 
-# View logs
+# Переглянути логи
 tail -f check.log
 ```
 
-## License
+## Як це працює
 
-MIT. Use freely.
+```
+┌─────────────┐    ┌──────────────┐    ┌─────────────┐
+│  Djinni.co  │    │   DOU.ua     │    │  Work.ua    │
+└──────┬──────┘    └──────┬───────┘    └──────┬──────┘
+       │                  │                   │
+       └──────────────────┼───────────────────┘
+                          │
+                   check_new.py (cron кожні 2 год)
+                          │
+                   ┌──────▼──────┐
+                   │ Groq API    │ AI аналіз (безкоштовно)
+                   │ Llama 3.3   │
+                   └──────┬──────┘
+                          │
+              ┌───────────┼───────────┐
+              │           │           │
+        vacancies.md  analyses.json  check.log
+              │           │
+              └─────┬─────┘
+                    │
+              ┌─────▼─────┐
+              │  app.py   │ Flask веб-сервер
+              │  :8080    │
+              └─────┬─────┘
+                    │
+              ┌─────▼─────┐
+              │ index.html│ Mobile-first дашборд
+              └───────────┘
+```
+
+## Ліцензія
+
+MIT. Використовуйте вільно.
