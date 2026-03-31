@@ -8,6 +8,7 @@ Usage: python3 analyze_new.py
 
 import os
 import re
+import sys
 import json
 import urllib.request
 import urllib.error
@@ -15,11 +16,18 @@ import time
 from html.parser import HTMLParser
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, BASE_DIR)
 MD_FILE = os.path.join(BASE_DIR, "vacancies.md")
 ANALYSES_FILE = os.path.join(BASE_DIR, "analyses.json")
 PROFILE_FILE = os.path.join(BASE_DIR, "profile.md")
 
-GROQ_KEY = os.environ.get("GROQ_API_KEY", "")
+# Load GROQ key: env var takes priority, then config.py
+_config_key = ""
+try:
+    from config import GROQ_API_KEY as _config_key
+except ImportError:
+    pass
+GROQ_KEY = os.environ.get("GROQ_API_KEY", "") or _config_key
 GROQ_MODEL = "llama-3.3-70b-versatile"
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 
@@ -79,7 +87,11 @@ def analyze_with_groq(vacancy_title, vacancy_url, page_text, profile):
         print(f"  [SKIP] No Groq API key")
         return None
 
-    prompt = f"""Проаналізуй вакансію для Дениса Осадчого на основі його профілю.
+    # Extract name from profile (first heading line)
+    name_match = re.search(r'^# (.+?)(?:\s*—|\s*$)', profile, re.MULTILINE)
+    profile_name = name_match.group(1).strip() if name_match else "кандидата"
+
+    prompt = f"""Проаналізуй вакансію для {profile_name} на основі його профілю.
 
 ПРОФІЛЬ:
 {profile}
@@ -165,6 +177,10 @@ def main():
     if os.path.exists(ANALYSES_FILE):
         with open(ANALYSES_FILE, "r", encoding="utf-8") as f:
             analyses = json.load(f)
+
+    if not os.path.exists(PROFILE_FILE):
+        print("ERROR: profile.md not found. Run setup.py first.")
+        return
 
     with open(PROFILE_FILE, "r", encoding="utf-8") as f:
         profile = f.read()

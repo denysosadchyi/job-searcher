@@ -68,16 +68,20 @@ def generate_vacancies_md():
     lines = [
         f"# {PROFILE['title']} — Vacancies",
         "",
-        f"Search started: {today}",
-        f"Updated: {today}",
+        f"Дата пошуку: {today}",
+        f"Оновлено: {today}",
         "",
         "---",
         "",
     ]
 
+    # Map config names to section names used by check_new.py
+    SECTION_MAP = {"Djinni": "Djinni.co", "DOU": "DOU.ua"}
+
     for name, cfg in SOURCES.items():
         if cfg["enabled"]:
-            lines.append(f"## {name}")
+            section_name = SECTION_MAP.get(name, name)
+            lines.append(f"## {section_name}")
             lines.append("")
             lines.append(f"- [All vacancies]({cfg['url']})")
             lines.append("")

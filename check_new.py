@@ -7,6 +7,7 @@ Run via cron every 2 hours.
 
 import os
 import re
+import sys
 import json
 import urllib.request
 import urllib.error
@@ -14,6 +15,7 @@ import time
 from datetime import datetime
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, BASE_DIR)
 MD_FILE = os.path.join(BASE_DIR, "vacancies.md")
 ANALYSES_FILE = os.path.join(BASE_DIR, "analyses.json")
 LOG_FILE = os.path.join(BASE_DIR, "check.log")
@@ -22,9 +24,14 @@ HEADERS = {
     'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
 }
 
-# Keywords to filter relevant vacancies
-KEYWORDS = ['design', 'ux', 'ui', 'product design', 'дизайн']
-SENIOR_KEYWORDS = ['senior', 'lead', 'head', 'principal', 'staff']
+# Load config — keywords and sources come from config.py
+try:
+    from config import TITLE_KEYWORDS, SOURCES
+except ImportError:
+    TITLE_KEYWORDS = ['design', 'ux', 'ui', 'product design', 'дизайн']
+    SOURCES = {}
+
+KEYWORDS = [k.lower() for k in TITLE_KEYWORDS]
 
 
 def log(msg):
@@ -46,6 +53,8 @@ def fetch_html(url):
 
 
 def get_existing_urls():
+    if not os.path.exists(MD_FILE):
+        return set()
     with open(MD_FILE, "r", encoding="utf-8") as f:
         content = f.read()
     return set(re.findall(r'\((https?://[^)]+)\)', content))
@@ -64,7 +73,8 @@ def is_relevant(title):
 def check_djinni():
     """Djinni.co — Ukrainian tech job board."""
     log("Checking Djinni...")
-    html = fetch_html("https://djinni.co/jobs/keyword-ui_ux/")
+    url = SOURCES.get("Djinni", {}).get("url", "https://djinni.co/jobs/keyword-ui_ux/")
+    html = fetch_html(url)
     if not html:
         return []
 
@@ -92,7 +102,8 @@ def check_djinni():
 def check_dou():
     """DOU.ua — Ukrainian developer community job board."""
     log("Checking DOU...")
-    html = fetch_html("https://jobs.dou.ua/vacancies/?search=UI/UX+Designer")
+    url = SOURCES.get("DOU", {}).get("url", "https://jobs.dou.ua/vacancies/?search=UI/UX+Designer")
+    html = fetch_html(url)
     if not html:
         return []
 
@@ -129,7 +140,8 @@ def check_dou():
 def check_workua():
     """Work.ua — Ukrainian job board."""
     log("Checking Work.ua...")
-    html = fetch_html("https://www.work.ua/en/jobs-ui+ux+designer/")
+    url = SOURCES.get("Work.ua", {}).get("url", "https://www.work.ua/en/jobs-ui+ux+designer/")
+    html = fetch_html(url)
     if not html:
         return []
 

@@ -3,11 +3,19 @@
 
 import re
 import os
+import sys
 import json
 from flask import Flask, jsonify, request, send_file
 
 app = Flask(__name__)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, BASE_DIR)
+
+try:
+    from config import WEB_PORT, WEB_HOST
+except ImportError:
+    WEB_PORT = 8080
+    WEB_HOST = "0.0.0.0"
 MD_FILE = os.path.join(BASE_DIR, "vacancies.md")
 ANALYSES_FILE = os.path.join(BASE_DIR, "analyses.json")
 CHANGELOG_FILE = os.path.join(BASE_DIR, "changelog.md")
@@ -26,6 +34,8 @@ def save_analyses(data):
 
 
 def parse_vacancies():
+    if not os.path.exists(MD_FILE):
+        return []
     with open(MD_FILE, "r", encoding="utf-8") as f:
         content = f.read()
 
@@ -114,4 +124,4 @@ def api_delete():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080)
+    app.run(host=WEB_HOST, port=WEB_PORT)
