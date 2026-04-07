@@ -3,21 +3,31 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect rx='20' width='100' height='100' fill='%236c63ff'/><text x='50' y='68' font-size='55' text-anchor='middle' fill='white'>V</text></svg>">
-<title>Вакансії</title>
+<link rel="preconnect" href="https://rsms.me/">
+<link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect rx='22' width='100' height='100' fill='%235e6ad2'/><circle cx='44' cy='44' r='22' fill='none' stroke='white' stroke-width='7'/><line x1='60' y1='60' x2='78' y2='78' stroke='white' stroke-width='7' stroke-linecap='round'/></svg>">
+<title id="pageTitle">Вакансії</title>
 <style>
   :root {
-    --bg: #0a0a0f;
-    --card: #141420;
-    --panel: #0e0e1a;
-    --border: #252538;
-    --text: #e0e0e0;
-    --muted: #777;
-    --accent: #6c63ff;
-    --link: #74b9ff;
+    --bg: #111113;
+    --card: rgba(255,255,255,0.035);
+    --card-solid: #1a1a1f;
+    --panel: #161618;
+    --surface: #1e1f23;
+    --border: rgba(255,255,255,0.10);
+    --border-subtle: rgba(255,255,255,0.07);
+    --text: #d0d3d8;
+    --text-secondary: #b0b5bd;
+    --muted: #8a8f98;
+    --muted-deep: #62666d;
+    --accent: #5e6ad2;
+    --accent-bright: #7170ff;
+    --accent-hover: #828fff;
+    --link: #7170ff;
     --danger: #ff4757;
-    --danger-bg: rgba(255,71,87,.1);
-    --green: #2ed573;
+    --danger-bg: rgba(255,71,87,.08);
+    --green: #27a644;
+    --green-bright: #10b981;
     --yellow: #ffa502;
     --red: #ff4757;
   }
@@ -25,33 +35,54 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family: "Inter", "Inter Variable", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-feature-settings: "cv01", "ss03";
     background: var(--bg);
-    color: var(--text);
+    color: var(--text-secondary);
     padding: 12px;
     padding-bottom: 60px;
-    max-width: 800px;
+    max-width: 100%;
     margin: 0 auto;
     -webkit-font-smoothing: antialiased;
+    font-weight: 400;
+    line-height: 1.5;
   }
 
-  header { text-align: center; padding: 16px 0 4px; }
-  header h1 { font-size: 1.2rem; font-weight: 600; }
-  .meta { color: var(--muted); font-size: 0.75rem; margin-top: 4px; }
+  header {
+    display: flex; align-items: baseline; justify-content: space-between;
+    padding: 16px 0 4px;
+  }
+  header h1 { font-size: 1.3rem; font-weight: 510; color: var(--text); letter-spacing: -0.4px; }
+  .meta { color: var(--muted); font-size: 0.75rem; }
 
-  /* Filters */
+  /* Segmented filter control */
   .filters {
-    display: flex; gap: 6px; padding: 12px 0 4px;
+    display: flex; padding: 2px;
+    margin: 12px 0 4px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgb(45,47,53);
+    border-radius: 8px;
     overflow-x: auto; -webkit-overflow-scrolling: touch;
   }
   .filters::-webkit-scrollbar { display: none; }
   .filter-btn {
-    background: var(--card); border: 1px solid var(--border);
-    color: var(--muted); font-size: 0.72rem; padding: 5px 10px;
-    border-radius: 16px; white-space: nowrap; cursor: pointer;
-    transition: all .2s;
+    background: transparent; border: none;
+    color: var(--muted); font-size: 13px; padding: 0 12px;
+    height: 36px;
+    border-radius: 6px; white-space: nowrap; cursor: pointer;
+    transition: all .15s; font-weight: 510;
+    position: relative; flex: 0 0 auto;
+    display: inline-flex; align-items: center; gap: 4px;
   }
-  .filter-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .filter-btn:hover:not(.active) { color: var(--text-secondary); background: rgba(255,255,255,0.03); }
+  .filter-btn.active {
+    background: rgba(255,255,255,0.06); color: var(--text);
+    box-shadow: rgba(0,0,0,0.2) 0px 0px 0px 1px;
+  }
+  .filter-btn .filter-count {
+    font-size: 11px; color: var(--muted-deep); font-weight: 400;
+  }
+  .filter-btn.active .filter-count { color: var(--muted); }
 
   /* Sort controls */
   .toolbar {
@@ -59,50 +90,63 @@
     padding: 8px 0 2px; gap: 8px;
   }
   .sort-group {
-    display: flex; gap: 4px; align-items: center;
+    display: flex; align-items: center;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgb(45,47,53);
+    border-radius: 8px; padding: 2px;
   }
   .sort-label {
-    color: var(--muted); font-size: 0.68rem; margin-right: 2px;
+    color: var(--muted-deep); font-size: 12px; margin: 0 4px 0 8px;
   }
   .sort-btn {
-    background: var(--card); border: 1px solid var(--border);
-    color: var(--muted); font-size: 0.68rem; padding: 3px 8px;
-    border-radius: 4px; cursor: pointer; transition: all .2s;
-    white-space: nowrap;
+    background: transparent; border: none;
+    color: var(--muted); font-size: 13px; padding: 0 10px;
+    height: 32px;
+    border-radius: 6px; cursor: pointer; transition: all .15s;
+    white-space: nowrap; font-weight: 510;
+    display: inline-flex; align-items: center;
   }
-  .sort-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
-  .sort-btn:hover:not(.active) { border-color: var(--accent); color: var(--text); }
+  .sort-btn.active {
+    background: rgba(255,255,255,0.06); color: var(--text);
+    box-shadow: rgba(0,0,0,0.2) 0px 0px 0px 1px;
+  }
+  .sort-btn:hover:not(.active) { color: var(--text-secondary); background: rgba(255,255,255,0.03); }
 
   /* Search */
   .search-box {
-    background: var(--card); border: 1px solid var(--border);
-    color: var(--text); font-size: 0.75rem; padding: 4px 10px;
-    border-radius: 6px; outline: none; width: 160px;
-    transition: border-color .2s;
+    background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08);
+    color: var(--text); font-size: 14px; padding: 0 14px;
+    height: 36px;
+    border-radius: 6px; outline: none; width: 180px;
+    transition: border-color .2s; font-family: inherit; font-feature-settings: "cv01", "ss03";
   }
-  .search-box::placeholder { color: var(--muted); }
-  .search-box:focus { border-color: var(--accent); }
+  .search-box::placeholder { color: var(--muted-deep); }
+  .search-box:focus { border-color: var(--accent-bright); }
 
   /* Section */
-  .section { margin-top: 18px; }
+  .section { margin-top: 24px; }
   .section-hdr {
-    font-size: 0.9rem; font-weight: 600; color: var(--accent);
-    padding: 6px 0; border-bottom: 1px solid var(--border);
-    margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;
+    font-size: 13px; font-weight: 510; color: var(--muted);
+    padding: 0 0 8px; margin-bottom: 0;
+    display: flex; justify-content: space-between; align-items: center;
+    letter-spacing: -0.13px; text-transform: uppercase;
   }
   .section-count {
-    background: var(--border); color: var(--muted);
-    font-size: 0.65rem; padding: 2px 7px; border-radius: 10px;
+    background: transparent; color: var(--muted-deep);
+    font-size: 11px; padding: 0; font-weight: 510;
   }
 
   /* Card */
   .card {
     background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    margin-bottom: 8px;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px;
+    margin-bottom: 6px;
     overflow: hidden;
+    transition: background .15s;
+    box-shadow: rgba(0,0,0,0.25) 0px 0px 0px 1px;
   }
+  .card:hover { background: rgba(255,255,255,0.045); }
 
   .card-header {
     padding: 12px;
@@ -112,44 +156,52 @@
     cursor: pointer;
     position: relative;
     -webkit-tap-highlight-color: transparent;
+    flex-wrap: wrap;
   }
   .card-header:active { background: rgba(255,255,255,.02); }
 
   .score-badge {
     flex-shrink: 0;
     width: 36px; height: 36px;
-    border-radius: 10px;
+    border-radius: 8px;
     display: flex; align-items: center; justify-content: center;
-    font-size: 0.85rem; font-weight: 700;
+    font-size: 13px; font-weight: 590;
   }
-  .score-high { background: rgba(46,213,115,.2); color: var(--green); }
-  .score-mid { background: rgba(255,165,2,.2); color: var(--yellow); }
-  .score-low { background: rgba(255,71,87,.15); color: var(--red); }
-  .score-none { background: var(--border); color: var(--muted); }
+  .score-high { background: rgba(16,185,129,.15); color: var(--green-bright); }
+  .score-mid { background: rgba(255,165,2,.15); color: var(--yellow); }
+  .score-low { background: rgba(255,71,87,.1); color: var(--red); }
+  .score-none { background: rgba(255,255,255,0.04); color: var(--muted-deep); }
 
-  .card-info { flex: 1; min-width: 0; padding-right: 36px; }
+  .card-info { flex: 1; min-width: 0; }
 
   .card-title {
-    color: var(--link); text-decoration: none;
-    font-size: 0.85rem; line-height: 1.3;
+    color: var(--text); text-decoration: none;
+    font-size: 14px; line-height: 1.33;
     display: block; word-wrap: break-word;
+    font-weight: 510; letter-spacing: -0.182px;
   }
-  .card-title:hover { text-decoration: underline; }
+  .card-title:hover { color: var(--accent-hover); }
 
   .card-meta {
-    display: flex; gap: 6px; flex-wrap: wrap;
-    margin-top: 5px; font-size: 0.68rem; color: var(--muted);
+    display: flex; gap: 5px; flex-wrap: wrap;
+    margin-top: 5px; font-size: 12px; color: var(--muted);
   }
   .tag {
-    background: var(--border); padding: 1px 6px;
-    border-radius: 4px; white-space: nowrap;
+    background: transparent; padding: 0 8px;
+    border-radius: 9999px; white-space: nowrap; font-weight: 510;
+    border: 1px solid rgb(45,47,53); line-height: 20px;
   }
-  .tag-date { background: rgba(108,99,255,.15); color: var(--accent); }
-  .tag-inactive { color: var(--red); background: var(--danger-bg); }
-  .tag-salary { background: rgba(46,213,115,.12); color: var(--green); }
+  .tag-date { color: var(--muted); }
+  .tag-fresh { color: var(--green-bright); border-color: rgba(16,185,129,.25); }
+  .tag-aging { color: var(--yellow); border-color: rgba(255,165,2,.2); }
+  .tag-stale { color: var(--red); border-color: rgba(255,71,87,.15); opacity: .7; }
+  .card.stale { opacity: .55; }
+  .card.stale:hover { opacity: .85; }
+  .tag-inactive { color: var(--red); border-color: rgba(255,71,87,.2); }
+  .tag-salary { color: var(--green-bright); border-color: rgba(16,185,129,.25); }
   .tag-new {
-    background: rgba(0,168,255,.2); color: #00a8ff;
-    font-weight: 600; animation: pulse 2s ease-in-out infinite;
+    color: var(--accent-bright); border-color: rgba(113,112,255,.3);
+    font-weight: 590; animation: pulse 2s ease-in-out infinite;
   }
   @keyframes pulse {
     0%, 100% { opacity: 1; }
@@ -157,40 +209,48 @@
   }
 
   .card-actions {
-    display: flex; gap: 2px;
-    position: absolute; top: 8px; right: 8px;
+    display: flex; gap: 2px; align-items: center;
+    flex-shrink: 0;
   }
 
   .btn-icon {
-    width: 30px; height: 30px; border: none;
-    background: transparent; color: var(--muted);
-    font-size: 1rem; cursor: pointer; border-radius: 6px;
+    width: 32px; height: 32px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.03);
+    color: var(--muted);
+    cursor: pointer; border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
     transition: all .15s;
   }
-  .btn-icon:hover { background: var(--border); color: var(--text); }
-  .btn-fav { font-size: 1.1rem; }
+  .btn-icon svg { width: 15px; height: 15px; }
+  .btn-icon:hover { background: rgba(255,255,255,0.06); color: var(--text); }
   .btn-fav.faved { color: var(--yellow); }
   .btn-fav:hover { background: rgba(255,165,2,.12); color: var(--yellow); }
   .btn-del:hover { background: var(--danger-bg); color: var(--danger); }
   .btn-del:active { transform: scale(.9); }
-  .tag-fav { background: rgba(255,165,2,.15); color: var(--yellow); }
-  .tag-note { background: rgba(108,99,255,.15); color: var(--accent); font-size: 0.62rem; }
-  .tag-applied { background: rgba(108,99,255,.18); color: var(--accent); }
-  .tag-interview { background: rgba(46,213,115,.18); color: var(--green); }
-  .tag-offer { background: rgba(46,213,115,.3); color: #2ed573; font-weight: 600; }
-  .tag-rejected { background: rgba(255,71,87,.12); color: var(--muted); text-decoration: line-through; }
+  .tag-fav { color: var(--yellow); border-color: rgba(255,165,2,.3); }
+  .tag-note { color: var(--accent-bright); border-color: rgba(113,112,255,.25); }
+  .tag-applied { color: var(--accent-bright); border-color: rgba(113,112,255,.3); }
+  .tag-interview { color: var(--green-bright); border-color: rgba(16,185,129,.3); }
+  .tag-offer { color: var(--green-bright); border-color: rgba(16,185,129,.4); font-weight: 590; }
+  .tag-rejected { color: var(--muted-deep); border-color: rgb(45,47,53); text-decoration: line-through; }
 
   /* Status selector */
   .status-sel {
-    font-size: 0.65rem; padding: 2px 4px;
-    background: var(--card); border: 1px solid var(--border);
-    color: var(--muted); border-radius: 4px;
+    font-size: 12px; padding: 0 22px 0 8px;
+    height: 32px;
+    background: rgba(255,255,255,0.02); border: 1px solid rgb(46,50,56);
+    color: var(--muted); border-radius: 6px;
     cursor: pointer; outline: none;
+    font-weight: 510;
     -webkit-appearance: none; appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238a8f98' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
   }
-  .status-sel:focus { border-color: var(--accent); }
-  .status-sel option { background: var(--card); color: var(--text); }
+  .status-sel:hover { border-color: var(--border); background-color: rgba(255,255,255,0.05); }
+  .status-sel:focus { border-color: var(--accent-bright); }
+  .status-sel option { background: var(--surface); color: var(--text); }
 
   /* Notes */
   .note-area {
@@ -199,7 +259,7 @@
   }
   .note-label {
     font-size: 0.68rem; color: var(--accent);
-    font-weight: 600; text-transform: uppercase;
+    font-weight: 590; text-transform: uppercase;
     letter-spacing: .5px; margin-bottom: 4px;
     display: flex; align-items: center; gap: 6px;
   }
@@ -216,62 +276,61 @@
   .note-text.empty { color: var(--muted); font-style: italic; }
   .note-input {
     width: 100%; min-height: 50px; max-height: 120px;
-    background: var(--bg); border: 1px solid var(--border);
-    color: var(--text); font-size: 0.78rem; line-height: 1.5;
+    background: rgba(255,255,255,0.02); border: 1px solid var(--border);
+    color: var(--text-secondary); font-size: 0.78rem; line-height: 1.5;
     padding: 6px 8px; border-radius: 6px; resize: vertical;
-    font-family: inherit; outline: none;
+    font-family: inherit; font-feature-settings: "cv01", "ss03"; outline: none;
   }
-  .note-input:focus { border-color: var(--accent); }
-  .note-input::placeholder { color: var(--muted); }
+  .note-input:focus { border-color: var(--accent-bright); }
+  .note-input::placeholder { color: var(--muted-deep); }
   .note-save-row {
     display: flex; gap: 6px; margin-top: 4px; justify-content: flex-end;
   }
   .note-save-btn, .note-cancel-btn {
-    font-size: 0.68rem; padding: 3px 10px; border-radius: 4px;
-    cursor: pointer; border: 1px solid var(--border);
-    background: var(--card); color: var(--muted);
+    font-size: 13px; padding: 0 14px; height: 32px;
+    border-radius: 6px;
+    cursor: pointer; border: 1px solid rgb(46,50,56);
+    background: rgba(255,255,255,0.02); color: var(--text-secondary); font-weight: 510;
+    display: inline-flex; align-items: center;
   }
   .note-save-btn { background: var(--accent); color: #fff; border-color: var(--accent); }
   .note-save-btn:hover { opacity: .9; }
   .note-cancel-btn:hover { border-color: var(--accent); color: var(--text); }
-  .btn-note { font-size: 0.85rem; }
-  .btn-note.has-note { color: var(--accent); }
+  .btn-note.has-note { color: var(--accent-bright); }
 
   /* Chevron — left side */
   .chevron {
     flex-shrink: 0;
     width: 20px;
     display: flex; align-items: center; justify-content: center;
-    font-size: 0.6rem; color: var(--muted);
+    color: var(--muted-deep);
     transition: transform .25s;
     align-self: center;
   }
+  .chevron svg { width: 14px; height: 14px; }
   .card.open .chevron { transform: rotate(180deg); }
 
   /* Accordion panel */
   .card-panel {
     max-height: 0;
     overflow: hidden;
-    transition: max-height .3s ease, padding .3s ease;
-  }
-  .card.open .card-panel {
-    max-height: 300px;
+    transition: max-height .35s ease-out;
   }
 
   .panel-inner {
     padding: 0 12px 12px;
-    border-top: 1px solid var(--border);
+    border-top: 1px solid var(--border-subtle);
   }
 
   .panel-label {
-    font-size: 0.68rem; color: var(--accent);
-    font-weight: 600; margin: 10px 0 4px;
+    font-size: 0.68rem; color: var(--accent-bright);
+    font-weight: 590; margin: 10px 0 4px;
     text-transform: uppercase;
     letter-spacing: .5px;
   }
   .panel-text {
-    font-size: 0.8rem; line-height: 1.5;
-    color: var(--text);
+    font-size: 0.8rem; line-height: 1.6;
+    color: var(--text-secondary);
   }
   .panel-no-analysis {
     font-size: 0.78rem; color: var(--muted);
@@ -280,8 +339,8 @@
 
   /* Keyboard focus */
   .card.kb-focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 2px rgba(108,99,255,.3);
+    border-color: var(--accent-bright);
+    box-shadow: 0 0 0 2px rgba(113,112,255,.25);
   }
 
   /* Delete animation */
@@ -293,9 +352,9 @@
   /* Status bar */
   .status-bar {
     position: fixed; bottom: 0; left: 0; right: 0;
-    background: var(--card); border-top: 1px solid var(--border);
+    background: var(--panel); border-top: 1px solid var(--border-subtle);
     padding: 8px; text-align: center;
-    font-size: 0.72rem; color: var(--muted); z-index: 10;
+    font-size: 0.72rem; color: var(--muted); z-index: 10; font-weight: 510;
   }
   .dot {
     display: inline-block; width: 6px; height: 6px;
@@ -304,36 +363,68 @@
   .dot-ok { background: var(--green); }
   .dot-err { background: var(--red); }
   .kb-hint {
-    float: right; font-size: 0.65rem; color: var(--muted);
+    float: right; color: var(--muted);
     opacity: .6; cursor: pointer;
   }
-  .kb-hint:hover { opacity: 1; color: var(--accent); }
+  .kb-hint svg { width: 16px; height: 16px; vertical-align: middle; }
+  .kb-hint:hover { opacity: 1; color: var(--accent-bright); }
 
   /* Keyboard shortcuts overlay */
   .kb-overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,.7);
+    position: fixed; inset: 0; background: rgba(0,0,0,.85);
     z-index: 100; display: flex; align-items: center; justify-content: center;
   }
   .kb-modal {
-    background: var(--card); border: 1px solid var(--border);
-    border-radius: 14px; padding: 20px 24px; max-width: 340px; width: 90%;
+    background: var(--surface); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px; padding: 20px 24px; max-width: 340px; width: 90%;
+    box-shadow: rgba(0,0,0,0) 0px 8px 2px, rgba(0,0,0,0.01) 0px 5px 2px, rgba(0,0,0,0.04) 0px 3px 2px, rgba(0,0,0,0.07) 0px 1px 1px, rgba(0,0,0,0.08) 0px 0px 1px;
   }
   .kb-modal h3 {
-    font-size: 0.9rem; color: var(--accent); margin-bottom: 12px;
-    text-align: center;
+    font-size: 0.9rem; color: var(--text); margin-bottom: 12px;
+    text-align: center; font-weight: 510; letter-spacing: -0.2px;
   }
   .kb-row {
     display: flex; justify-content: space-between; align-items: center;
     padding: 5px 0; font-size: 0.8rem;
   }
   .kb-key {
-    background: var(--border); padding: 2px 8px; border-radius: 4px;
-    font-family: monospace; font-size: 0.75rem; color: var(--text);
+    background: rgba(255,255,255,0.05); padding: 2px 8px; border-radius: 4px;
+    font-family: "Berkeley Mono", ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.75rem; color: var(--text);
     min-width: 24px; text-align: center;
+    border: 1px solid var(--border-subtle);
   }
   .kb-desc { color: var(--muted); }
 
+  /* Search highlight */
+  mark.hl {
+    background: rgba(113,112,255,.2); color: var(--text);
+    border-radius: 2px; padding: 0 1px;
+  }
+
   .empty { color: var(--muted); text-align: center; padding: 40px 0; font-size: .9rem; }
+
+  /* Toast notification */
+  .toast {
+    position: fixed; top: 12px; left: 50%; transform: translateX(-50%) translateY(-100px);
+    background: var(--accent); color: #fff;
+    padding: 0 20px; height: 40px;
+    border-radius: 9999px; font-size: 13px; font-weight: 510;
+    display: flex; align-items: center; gap: 8px;
+    cursor: pointer; z-index: 50;
+    box-shadow: 0 4px 24px rgba(0,0,0,.4), 0 0 0 1px rgba(113,112,255,.3);
+    transition: transform .35s cubic-bezier(.4,0,.2,1), opacity .35s;
+    opacity: 0; pointer-events: none;
+    white-space: nowrap;
+  }
+  .toast.visible { transform: translateX(-50%) translateY(0); opacity: 1; pointer-events: auto; }
+  .toast:hover { background: var(--accent-bright); }
+  .toast svg { width: 16px; height: 16px; flex-shrink: 0; }
+  .toast-dismiss {
+    background: none; border: none; color: rgba(255,255,255,.6);
+    cursor: pointer; padding: 0 0 0 4px; display: flex; align-items: center;
+  }
+  .toast-dismiss:hover { color: #fff; }
+  .toast-dismiss svg { width: 14px; height: 14px; }
 
   /* Stats panel */
   .stats-panel {
@@ -343,9 +434,9 @@
     margin-top: 12px;
   }
   .stat-card {
-    background: var(--card);
+    background: rgba(255,255,255,0.02);
     border: 1px solid var(--border);
-    border-radius: 10px;
+    border-radius: 8px;
     padding: 10px 12px;
   }
   .stat-card.wide { grid-column: 1 / -1; }
@@ -358,8 +449,9 @@
   }
   .stat-value {
     font-size: 1.1rem;
-    font-weight: 700;
+    font-weight: 510;
     color: var(--text);
+    letter-spacing: -0.3px;
   }
   .stat-value .sub {
     font-size: 0.7rem;
@@ -400,25 +492,21 @@
     margin-top: 4px;
   }
   .source-chip {
-    background: var(--border);
-    padding: 2px 7px;
-    border-radius: 4px;
-    font-size: 0.65rem;
+    background: transparent;
+    padding: 0 8px;
+    border-radius: 9999px;
+    font-size: 12px; line-height: 22px;
     color: var(--muted);
+    border: 1px solid rgb(45,47,53);
+    font-weight: 510;
   }
   .source-chip b {
-    color: var(--text);
-    font-weight: 600;
+    color: var(--text-secondary);
+    font-weight: 590;
     margin-left: 3px;
   }
-  .stats-toggle {
-    background: none; border: none;
-    color: var(--accent); font-size: 0.72rem;
-    cursor: pointer; padding: 4px 0;
-    text-decoration: underline;
-    text-underline-offset: 2px;
-  }
-  .stats-toggle:hover { color: var(--link); }
+  /* Stats button icon inside filters */
+  .filter-btn svg { width: 14px; height: 14px; }
 
   /* Action buttons row */
   .actions-row {
@@ -426,36 +514,148 @@
     flex-wrap: wrap;
   }
   .action-btn {
-    background: var(--card); border: 1px solid var(--border);
-    color: var(--muted); font-size: 0.68rem; padding: 4px 10px;
-    border-radius: 6px; cursor: pointer; transition: all .2s;
-    white-space: nowrap;
+    background: rgba(255,255,255,0.02); border: 1px solid rgb(46,50,56);
+    color: var(--text-secondary); font-size: 13px; padding: 0 12px;
+    height: 36px;
+    border-radius: 6px; cursor: pointer; transition: all .15s;
+    white-space: nowrap; font-weight: 510;
+    display: inline-flex; align-items: center; gap: 6px;
   }
-  .action-btn:hover { border-color: var(--accent); color: var(--text); }
+  .action-btn:hover { background: rgba(255,255,255,0.04); color: var(--text); }
   .action-btn:active { transform: scale(.97); }
   .action-btn.hidden { display: none; }
+  .action-btn.toggled { background: rgba(94,106,210,.12); border-color: rgba(113,112,255,.3); color: var(--accent-bright); }
 
+  /* View toggle */
+  .view-toggle {
+    display: flex; margin-left: auto;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgb(45,47,53);
+    border-radius: 8px; padding: 2px;
+  }
+  .view-btn {
+    background: transparent; border: none;
+    color: var(--muted); padding: 0 10px;
+    height: 32px;
+    cursor: pointer; transition: all .15s; font-weight: 510;
+    border-radius: 6px;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .view-btn svg { width: 16px; height: 16px; }
+  .view-btn.active {
+    background: rgba(255,255,255,0.06); color: var(--text);
+    box-shadow: rgba(0,0,0,0.2) 0px 0px 0px 1px;
+  }
+  .view-btn:hover:not(.active) { color: var(--text-secondary); background: rgba(255,255,255,0.03); }
+
+  /* Compact list view */
+  .list-view .card { border-radius: 0; margin-bottom: 0; border-bottom: none; }
+  .list-view .card:first-child { border-radius: 8px 8px 0 0; }
+  .list-view .card:last-child { border-radius: 0 0 8px 8px; border-bottom: 1px solid var(--border); }
+  .list-view .card:only-child { border-radius: 8px; border-bottom: 1px solid var(--border); }
+  .list-view .card-header { padding: 6px 10px; gap: 8px; }
+  .list-view .score-badge {
+    width: 28px; height: 28px; font-size: 11px; border-radius: 6px;
+  }
+  .list-view .card-title { font-size: 13px; }
+  .list-view .card-meta { margin-top: 2px; gap: 4px; }
+  .list-view .tag { font-size: 11px; padding: 0 6px; line-height: 18px; }
+  .list-view .card-info { padding-right: 0; }
+  .list-view .card-actions { gap: 0; }
+  .list-view .btn-icon { width: 26px; height: 26px; }
+  .list-view .btn-icon svg { width: 13px; height: 13px; }
+  .list-view .status-sel { height: 26px; font-size: 11px; padding: 0 18px 0 6px; background-position: right 4px center; }
+  .list-view .chevron { width: 14px; }
+  .list-view .chevron svg { width: 12px; height: 12px; }
+  .list-view .card-panel { }
+  .list-view .panel-inner { padding: 0 10px 10px; }
+  .list-view .section { margin-top: 14px; }
+
+  /* Mobile: actions drop to own row */
+  @media (max-width: 599px) {
+    .card-header { gap: 8px; }
+    .card-info { flex-basis: calc(100% - 64px); }
+    .card-actions { order: 10; margin-left: auto; padding-top: 2px; }
+    .toolbar { flex-wrap: wrap; }
+    .search-box { width: 100%; order: 10; margin-top: 4px; }
+  }
+
+  /* Tablet+ */
   @media (min-width: 600px) {
-    body { padding: 20px 20px 60px; }
-    header h1 { font-size: 1.4rem; }
-    .card-header { padding: 14px 16px; }
+    body { padding: 20px 24px 60px; max-width: 900px; }
+    header h1 { font-size: 20px; letter-spacing: -0.44px; }
+    .card-header { padding: 12px 16px; flex-wrap: nowrap; }
     .panel-inner { padding: 0 16px 14px; }
-    .card-title { font-size: .9rem; }
+    .card-title { font-size: 15px; letter-spacing: -0.165px; }
     .stats-panel { grid-template-columns: 1fr 1fr 1fr; }
     .stat-card.wide { grid-column: 1 / -1; }
+    .search-box { width: 200px; }
+  }
+
+  /* Desktop */
+  @media (min-width: 1024px) {
+    body { max-width: 1060px; padding: 28px 40px 60px; }
+    header { padding: 24px 0 8px; }
+    header h1 { font-size: 24px; letter-spacing: -0.528px; }
+    .meta { font-size: 13px; }
+    .filters { margin: 16px 0 8px; overflow: visible; }
+    .filter-btn { flex: 1 1 0; justify-content: center; height: 38px; font-size: 14px; }
+    .filter-btn svg { width: 15px; height: 15px; }
+    .toolbar { padding: 10px 0 4px; gap: 12px; }
+    .sort-btn { height: 34px; font-size: 14px; padding: 0 12px; }
+    .sort-label { font-size: 13px; }
+    .view-btn { height: 34px; }
+    .view-btn svg { width: 17px; height: 17px; }
+    .search-box { width: 240px; height: 38px; font-size: 14px; }
+    .actions-row { gap: 8px; padding: 6px 0; }
+    .action-btn { height: 38px; font-size: 14px; }
+    .section { margin-top: 32px; }
+    .section-hdr { font-size: 13px; padding: 0 0 10px; }
+    .card { margin-bottom: 8px; }
+    .card-header { padding: 14px 20px; gap: 12px; }
+    .score-badge { width: 40px; height: 40px; font-size: 14px; }
+    .card-title { font-size: 15px; letter-spacing: -0.165px; }
+    .card-meta { margin-top: 6px; font-size: 13px; gap: 6px; }
+    .tag { font-size: 12px; padding: 0 10px; line-height: 22px; }
+    .btn-icon { width: 34px; height: 34px; }
+    .btn-icon svg { width: 16px; height: 16px; }
+    .status-sel { height: 34px; font-size: 13px; padding: 0 24px 0 10px; }
+    .chevron svg { width: 15px; height: 15px; }
+    .panel-inner { padding: 0 20px 16px; }
+    .panel-label { font-size: 12px; margin: 12px 0 6px; }
+    .panel-text { font-size: 15px; }
+    .note-text { font-size: 15px; }
+    .note-input { font-size: 15px; padding: 12px 14px; }
+    .note-save-btn, .note-cancel-btn { height: 34px; font-size: 13px; }
+    .stats-panel { grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 16px; }
+    .stat-card { padding: 14px 16px; }
+    .stat-card.wide { grid-column: 1 / -1; }
+    .stat-value { font-size: 1.2rem; }
+    .kb-modal { max-width: 400px; padding: 24px 28px; }
+    .kb-row { padding: 6px 0; font-size: 15px; }
+    .empty { font-size: 15px; padding: 60px 0; }
+  }
+
+  /* Wide desktop */
+  @media (min-width: 1440px) {
+    body { max-width: 1200px; padding: 32px 48px 60px; }
+    header h1 { font-size: 32px; letter-spacing: -0.704px; }
+    .card-header { padding: 16px 24px; }
+    .score-badge { width: 44px; height: 44px; font-size: 15px; }
+    .card-title { font-size: 16px; letter-spacing: normal; }
+    .search-box { width: 280px; }
   }
 </style>
 </head>
 <body>
 
 <header>
-  <h1>Вакансії UI/UX</h1>
+  <h1 id="headerTitle">Вакансії</h1>
   <div class="meta" id="meta"></div>
 </header>
 
-<button class="stats-toggle" id="statsToggle" onclick="toggleStats()">Статистика ▼</button>
-<div id="statsPanel" style="display:none"></div>
 <div class="filters" id="filters"></div>
+<div id="statsPanel" style="display:none"></div>
 <div class="toolbar">
   <div class="sort-group">
     <span class="sort-label">Sort:</span>
@@ -463,21 +663,46 @@
     <button class="sort-btn" onclick="setSort('score')">Score ↓</button>
     <button class="sort-btn" onclick="setSort('date')">Date ↓</button>
   </div>
-  <input class="search-box" type="text" id="searchBox" placeholder="Пошук..." oninput="onSearch(this.value)">
+  <div class="view-toggle">
+    <button class="view-btn active" id="viewCard" onclick="setView('card')" title="Картки"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/></svg></button>
+    <button class="view-btn" id="viewList" onclick="setView('list')" title="Компактний список"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/></svg></button>
+  </div>
+  <input class="search-box" type="text" id="searchBox" placeholder="Пошук (кілька слів = AND)..." oninput="onSearch(this.value)">
 </div>
 <div class="actions-row">
-  <button class="action-btn hidden" id="markAllSeenBtn" onclick="markAllSeen()">✓ Позначити всі як переглянуті</button>
-  <button class="action-btn" id="expandCollapseBtn" onclick="toggleExpandAll()">↕ Розгорнути всі</button>
-  <button class="action-btn" onclick="exportCSV()">📥 Експорт CSV</button>
+  <button class="action-btn hidden" id="markAllSeenBtn" onclick="markAllSeen()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M20 6 9 17l-5-5"/></svg> Позначити переглянутими</button>
+  <button class="action-btn" id="expandCollapseBtn" onclick="toggleExpandAll()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></svg> Розгорнути всі</button>
+  <button class="action-btn" onclick="exportCSV()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg> Експорт CSV</button>
+  <button class="action-btn" id="hideStaleBtn" onclick="toggleHideStale()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg> Сховати застарілі</button>
 </div>
 <div id="app"></div>
 
+<div class="toast" id="toast" onclick="applyPendingData()">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></svg>
+  <span id="toastMsg"></span>
+  <button class="toast-dismiss" onclick="event.stopPropagation(); dismissToast()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+</div>
 <div class="status-bar" id="statusBar">
   <span class="dot dot-ok"></span> Підключено
-  <span class="kb-hint" onclick="showKbHelp()" title="Keyboard shortcuts">⌨ ?</span>
+  <span class="kb-hint" onclick="showKbHelp()" title="Keyboard shortcuts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;vertical-align:middle"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="M6 8h.001"/><path d="M10 8h.001"/><path d="M14 8h.001"/><path d="M18 8h.001"/><path d="M8 12h.001"/><path d="M12 12h.001"/><path d="M16 12h.001"/><path d="M7 16h10"/></svg></span>
 </div>
 
 <script>
+// Lucide icons (inline SVG)
+const _s = 'viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"';
+const IC = {
+  chevDown: `<svg ${_s}><path d="m6 9 6 6 6-6"/></svg>`,
+  x: `<svg ${_s}><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>`,
+  star: `<svg ${_s}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,
+  starFill: `<svg ${_s} fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,
+  pencil: `<svg ${_s}><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>`,
+  chevsUpDown: `<svg ${_s}><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></svg>`,
+  check: `<svg ${_s}><path d="M20 6 9 17l-5-5"/></svg>`,
+  download: `<svg ${_s}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>`,
+  keyboard: `<svg ${_s}><rect width="20" height="16" x="2" y="4" rx="2"/><path d="M6 8h.001"/><path d="M10 8h.001"/><path d="M14 8h.001"/><path d="M18 8h.001"/><path d="M8 12h.001"/><path d="M12 12h.001"/><path d="M16 12h.001"/><path d="M7 16h10"/></svg>`,
+  barChart: `<svg ${_s}><line x1="18" x2="18" y1="20" y2="4"/><line x1="12" x2="12" y1="20" y2="10"/><line x1="6" x2="6" y1="20" y2="16"/></svg>`,
+};
+
 const app = document.getElementById('app');
 const filtersEl = document.getElementById('filters');
 const REFRESH = 30000;
@@ -486,8 +711,38 @@ const SKIP = ['Пошукові запити для самостійного м�
 let allData = [];
 let activeFilter = 'all';
 let activeSort = 'default';
+let activeView = localStorage.getItem('viewMode') || 'card';
 let searchQuery = '';
 let openCards = new Set();
+let pageTitle = 'Вакансії';
+let hideStale = localStorage.getItem('hideStale') === '1';
+
+// Load page title from config
+async function loadConfig() {
+  try {
+    const r = await fetch('/api/config');
+    const cfg = await r.json();
+    if (cfg.page_title) {
+      pageTitle = cfg.page_title;
+      document.getElementById('headerTitle').textContent = pageTitle;
+      updateTabTitle();
+    }
+  } catch(e) {}
+}
+
+function updateTabTitle() {
+  let newCount = 0;
+  const seen = getSeenUrls();
+  for (const s of allData) {
+    if (SKIP.includes(s.name)) continue;
+    for (const v of s.items) {
+      if (!seen.has(v.url)) newCount++;
+    }
+  }
+  document.title = newCount > 0 ? `(${newCount}) ${pageTitle}` : pageTitle;
+}
+
+loadConfig();
 
 // Seen tracking via localStorage
 function getSeenUrls() {
@@ -517,14 +772,14 @@ function toggleFav(url) {
 function isFav(url) { return getFavUrls().has(url); }
 
 // Application status tracking via localStorage
-const STATUS_OPTIONS = ['—', 'Applied', 'Interview', 'Offer', 'Rejected'];
+const STATUS_OPTIONS = ['Status', 'Applied', 'Interview', 'Offer', 'Rejected'];
 function getStatuses() {
   try { return JSON.parse(localStorage.getItem('vacancyStatuses') || '{}'); }
   catch { return {}; }
 }
 function setStatus(url, status) {
   const statuses = getStatuses();
-  if (status === '—') delete statuses[url]; else statuses[url] = status;
+  if (status === 'Status') delete statuses[url]; else statuses[url] = status;
   localStorage.setItem('vacancyStatuses', JSON.stringify(statuses));
   renderFilters();
   render();
@@ -586,6 +841,19 @@ function saveNoteFromInput(url) {
   if (textarea) saveNote(url, textarea.value);
 }
 
+let pendingData = null;
+let toastTimer = null;
+
+function dataFingerprint(data) {
+  // Quick fingerprint: count items + concatenate URLs for change detection
+  let fp = '';
+  for (const s of data) {
+    fp += s.name + ':' + s.items.length + ';';
+    for (const v of s.items) fp += v.url + ',';
+  }
+  return fp;
+}
+
 async function load() {
   try {
     const r = await fetch('/api/vacancies');
@@ -593,9 +861,70 @@ async function load() {
     renderFilters();
     render();
     updateMarkAllSeenBtn();
+    updateHideStaleBtn();
+    updateTabTitle();
     if (statsVisible) renderStats();
     status('ok');
   } catch(e) { status('err'); }
+}
+
+async function poll() {
+  try {
+    const r = await fetch('/api/vacancies');
+    const freshData = await r.json();
+    const oldFp = dataFingerprint(allData);
+    const newFp = dataFingerprint(freshData);
+    if (oldFp !== newFp) {
+      // Count new vacancy URLs that weren't in old data
+      const oldUrls = new Set();
+      for (const s of allData) for (const v of s.items) oldUrls.add(v.url);
+      let newCount = 0;
+      for (const s of freshData) for (const v of s.items) if (!oldUrls.has(v.url)) newCount++;
+
+      if (newCount > 0) {
+        // New vacancies arrived — show toast, don't re-render yet
+        pendingData = freshData;
+        showToast(`${newCount} нов${newCount === 1 ? 'а вакансія' : newCount < 5 ? 'і вакансії' : 'их вакансій'} — натисніть для оновлення`);
+      } else {
+        // Structure changed (deletions or updates) — apply silently
+        allData = freshData;
+        renderFilters();
+        render();
+        updateMarkAllSeenBtn();
+        updateHideStaleBtn();
+        updateTabTitle();
+        if (statsVisible) renderStats();
+      }
+    }
+    status('ok');
+  } catch(e) { status('err'); }
+}
+
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  toast.classList.add('visible');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(dismissToast, 15000);
+}
+
+function dismissToast() {
+  document.getElementById('toast').classList.remove('visible');
+  clearTimeout(toastTimer);
+}
+
+function applyPendingData() {
+  if (pendingData) {
+    allData = pendingData;
+    pendingData = null;
+    renderFilters();
+    render();
+    updateMarkAllSeenBtn();
+    updateHideStaleBtn();
+    updateTabTitle();
+    if (statsVisible) renderStats();
+  }
+  dismissToast();
 }
 
 function renderFilters() {
@@ -622,16 +951,18 @@ function renderFilters() {
     }
   }
   const pipelineCount = scores.applied + scores.interview + scores.offer + scores.rejected;
-  filtersEl.innerHTML = `
-    <button class="filter-btn ${activeFilter==='all'?'active':''}" onclick="setFilter('all')">Всі ${scores.all}</button>
-    <button class="filter-btn ${activeFilter==='fav'?'active':''}" onclick="setFilter('fav')">★ Fav ${scores.fav}</button>
-    <button class="filter-btn ${activeFilter==='new'?'active':''}" onclick="setFilter('new')">New ${scores.new}</button>
-    <button class="filter-btn ${activeFilter==='hot'?'active':''}" onclick="setFilter('hot')">Hot ${scores.hot}</button>
-    <button class="filter-btn ${activeFilter==='ok'?'active':''}" onclick="setFilter('ok')">OK ${scores.ok}</button>
-    <button class="filter-btn ${activeFilter==='skip'?'active':''}" onclick="setFilter('skip')">Skip ${scores.skip}</button>
-    <button class="filter-btn ${activeFilter==='notes'?'active':''}" onclick="setFilter('notes')">✎ Notes ${scores.notes}</button>
-    <button class="filter-btn ${activeFilter==='pipeline'?'active':''}" onclick="setFilter('pipeline')">Pipeline ${pipelineCount}</button>
-  `;
+  const fb = (id, label, count) =>
+    `<button class="filter-btn ${activeFilter===id?'active':''}" onclick="setFilter('${id}')">${label}<span class="filter-count">${count}</span></button>`;
+  filtersEl.innerHTML =
+    fb('all','Всі',scores.all) +
+    fb('fav','Fav',scores.fav) +
+    fb('new','New',scores.new) +
+    fb('hot','Hot',scores.hot) +
+    fb('ok','OK',scores.ok) +
+    fb('skip','Skip',scores.skip) +
+    fb('notes','Notes',scores.notes) +
+    fb('pipeline','Pipeline',pipelineCount) +
+    `<button class="filter-btn ${statsVisible?'active':''}" onclick="toggleStats()">${IC.barChart} Stats</button>`;
 }
 
 function setFilter(f) { activeFilter = f; renderFilters(); render(); }
@@ -644,6 +975,14 @@ function setSort(s) {
 }
 
 function onSearch(q) { searchQuery = q.toLowerCase().trim(); render(); }
+
+function setView(mode) {
+  activeView = mode;
+  localStorage.setItem('viewMode', mode);
+  document.getElementById('viewCard').classList.toggle('active', mode === 'card');
+  document.getElementById('viewList').classList.toggle('active', mode === 'list');
+  document.getElementById('app').classList.toggle('list-view', mode === 'list');
+}
 
 function parseDate(v) {
   const d = v.published || v.date || '';
@@ -669,7 +1008,21 @@ function sortItems(items) {
 function matchesSearch(v) {
   if (!searchQuery) return true;
   const text = [v.title, v.type, v.summary, v.salary, v.remote, getNote(v.url)].join(' ').toLowerCase();
-  return text.includes(searchQuery);
+  // AND logic: every word must match somewhere
+  const words = searchQuery.split(/\s+/).filter(Boolean);
+  return words.every(w => text.includes(w));
+}
+
+function highlightText(text, query) {
+  if (!query) return esc(text);
+  const words = query.split(/\s+/).filter(Boolean);
+  if (!words.length) return esc(text);
+  // Build regex matching any search word (case-insensitive)
+  const escaped = words.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  const re = new RegExp('(' + escaped.join('|') + ')', 'gi');
+  // Split text by capture group — odd indices are matches
+  const parts = text.split(re);
+  return parts.map((p, i) => i % 2 === 1 ? `<mark class="hl">${esc(p)}</mark>` : esc(p)).join('');
 }
 
 function passFilter(v) {
@@ -691,10 +1044,60 @@ function scoreClass(s) {
   return 'score-low';
 }
 
+function parseDateToObj(v) {
+  const d = v.published || v.date || '';
+  if (!d) return null;
+  const parts = d.split('.');
+  if (parts.length === 2) {
+    const day = parseInt(parts[0]), mon = parseInt(parts[1]) - 1;
+    const now = new Date();
+    let year = now.getFullYear();
+    const dt = new Date(year, mon, day);
+    if (dt > now) dt.setFullYear(year - 1);
+    return dt;
+  }
+  if (parts.length === 3) {
+    let yr = parseInt(parts[2]);
+    if (yr < 100) yr += 2000;
+    return new Date(yr, parseInt(parts[1]) - 1, parseInt(parts[0]));
+  }
+  return null;
+}
+
+function getAgeDays(v) {
+  const dt = parseDateToObj(v);
+  if (!dt) return -1;
+  return Math.floor((Date.now() - dt.getTime()) / 86400000);
+}
+
+function ageLabel(days) {
+  if (days < 0) return '';
+  if (days === 0) return 'today';
+  if (days === 1) return '1d';
+  if (days < 7) return days + 'd';
+  if (days < 14) return '1w';
+  if (days < 21) return '2w';
+  if (days < 30) return '3w';
+  return Math.floor(days / 30) + 'mo';
+}
+
+function ageClass(days) {
+  if (days < 0) return 'tag-date';
+  if (days <= 3) return 'tag-fresh';
+  if (days <= 14) return 'tag-date';
+  if (days <= 21) return 'tag-aging';
+  return 'tag-stale';
+}
+
+function isStale(v) { return getAgeDays(v) > 14; }
+
 function getDateTag(v) {
   const d = v.published || v.date;
   if (!d) return '';
-  return `<span class="tag tag-date">${esc(d)}</span>`;
+  const days = getAgeDays(v);
+  const age = ageLabel(days);
+  const cls = ageClass(days);
+  return `<span class="tag ${cls}">${esc(d)}${age ? ' · ' + age : ''}</span>`;
 }
 
 function statusTag(url) {
@@ -710,7 +1113,7 @@ function render() {
 
   for (const section of allData) {
     if (SKIP.includes(section.name)) continue;
-    const filtered = sortItems(section.items.filter(v => passFilter(v) && matchesSearch(v)));
+    const filtered = sortItems(section.items.filter(v => passFilter(v) && matchesSearch(v) && (!hideStale || !isStale(v))));
     if (!filtered.length) continue;
     total += filtered.length;
 
@@ -722,37 +1125,37 @@ function render() {
       const isOpen = openCards.has(v.url);
 
       html += `
-      <div class="card ${isOpen ? 'open' : ''}" data-url="${escA(v.url)}">
+      <div class="card ${isOpen ? 'open' : ''}${isStale(v) ? ' stale' : ''}" data-url="${escA(v.url)}">
         <div class="card-header" onclick="toggle(this)">
-          <div class="chevron">▼</div>
+          <div class="chevron">${IC.chevDown}</div>
           <div class="score-badge ${scoreClass(v.score)}">${sc}</div>
           <div class="card-info">
-            <a class="card-title" href="${escA(v.url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${esc(v.title)}</a>
+            <a class="card-title" href="${escA(v.url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${searchQuery ? highlightText(v.title, searchQuery) : esc(v.title)}</a>
             <div class="card-meta">
-              ${v.type ? `<span class="tag">${esc(v.type)}</span>` : ''}
-              ${v.remote ? `<span class="tag">${esc(v.remote)}</span>` : ''}
-              ${v.salary && v.salary !== 'Не вказана' ? `<span class="tag tag-salary">${esc(v.salary)}</span>` : ''}
+              ${v.type ? `<span class="tag">${searchQuery ? highlightText(v.type, searchQuery) : esc(v.type)}</span>` : ''}
+              ${v.remote ? `<span class="tag">${searchQuery ? highlightText(v.remote, searchQuery) : esc(v.remote)}</span>` : ''}
+              ${v.salary && v.salary !== 'Не вказана' ? `<span class="tag tag-salary">${searchQuery ? highlightText(v.salary, searchQuery) : esc(v.salary)}</span>` : ''}
               ${getDateTag(v)}
               ${v.status === 'inactive' ? '<span class="tag tag-inactive">inactive</span>' : ''}
               ${isNew(v.url) ? '<span class="tag tag-new">new</span>' : ''}
-              ${isFav(v.url) ? '<span class="tag tag-fav">★ fav</span>' : ''}
+              ${isFav(v.url) ? '<span class="tag tag-fav">fav</span>' : ''}
               ${statusTag(v.url)}
-              ${hasNote(v.url) ? '<span class="tag tag-note">✎ note</span>' : ''}
+              ${hasNote(v.url) ? '<span class="tag tag-note">note</span>' : ''}
             </div>
           </div>
           <div class="card-actions">
             <select class="status-sel" onclick="event.stopPropagation()" onchange="setStatus('${escA(v.url)}', this.value)" title="Статус">
-              ${STATUS_OPTIONS.map(s => `<option value="${s}"${(getStatus(v.url)||'—')===s?' selected':''}>${s}</option>`).join('')}
+              ${STATUS_OPTIONS.map(s => `<option value="${s}"${(getStatus(v.url)||'Status')===s?' selected':''}>${s}</option>`).join('')}
             </select>
-            <button class="btn-icon btn-note ${hasNote(v.url)?'has-note':''}" onclick="event.stopPropagation(); startEditNote('${escA(v.url)}')" title="Нотатка">✎</button>
-            <button class="btn-icon btn-fav ${isFav(v.url)?'faved':''}" onclick="event.stopPropagation(); toggleFav('${escA(v.url)}')" title="В обране">${isFav(v.url)?'★':'☆'}</button>
-            <button class="btn-icon btn-del" onclick="event.stopPropagation(); del(this)" title="Видалити">✕</button>
+            <button class="btn-icon btn-note ${hasNote(v.url)?'has-note':''}" onclick="event.stopPropagation(); startEditNote('${escA(v.url)}')" title="Нотатка">${IC.pencil}</button>
+            <button class="btn-icon btn-fav ${isFav(v.url)?'faved':''}" onclick="event.stopPropagation(); toggleFav('${escA(v.url)}')" title="В обране">${isFav(v.url)?IC.starFill:IC.star}</button>
+            <button class="btn-icon btn-del" onclick="event.stopPropagation(); del(this)" title="Видалити">${IC.x}</button>
           </div>
         </div>
         <div class="card-panel">
           <div class="panel-inner">
             ${v.summary
-              ? `<div class="panel-label">Аналіз</div><div class="panel-text">${esc(v.summary)}</div>`
+              ? `<div class="panel-label">Аналіз</div><div class="panel-text">${searchQuery ? highlightText(v.summary, searchQuery) : esc(v.summary)}</div>`
               : '<div class="panel-no-analysis">Аналіз ще не проведено</div>'
             }
             <div class="note-area">
@@ -768,6 +1171,8 @@ function render() {
 
   if (!total) html = '<div class="empty">Нічого не знайдено</div>';
   app.innerHTML = html;
+  // Restore max-height for open cards after DOM rebuild
+  document.querySelectorAll('.card.open .card-panel').forEach(p => { p.style.maxHeight = 'none'; });
   document.getElementById('meta').textContent =
     `Всього: ${total} · Оновлено: ${new Date().toLocaleTimeString('uk-UA')}`;
 }
@@ -775,18 +1180,29 @@ function render() {
 function toggle(hdr) {
   const card = hdr.closest('.card');
   const url = card.dataset.url;
-  card.classList.toggle('open');
-  if (card.classList.contains('open')) {
+  const panel = card.querySelector('.card-panel');
+  const opening = !card.classList.contains('open');
+  card.classList.toggle('open', opening);
+  if (opening) {
     openCards.add(url);
+    // Animate to actual content height
+    panel.style.maxHeight = panel.scrollHeight + 'px';
+    // After transition, allow content to reflow (e.g. note editing)
+    const onEnd = () => { if (card.classList.contains('open')) panel.style.maxHeight = 'none'; panel.removeEventListener('transitionend', onEnd); };
+    panel.addEventListener('transitionend', onEnd);
     if (isNew(url)) {
       markSeen(url);
       const newTag = card.querySelector('.tag-new');
       if (newTag) newTag.remove();
       renderFilters();
       updateMarkAllSeenBtn();
+      updateTabTitle();
     }
   } else {
     openCards.delete(url);
+    // Snap to current height first, then animate to 0
+    panel.style.maxHeight = panel.scrollHeight + 'px';
+    requestAnimationFrame(() => { panel.style.maxHeight = '0'; });
   }
 }
 
@@ -809,8 +1225,8 @@ async function del(btn) {
 function status(s) {
   const sb = document.getElementById('statusBar');
   sb.innerHTML = s === 'ok'
-    ? '<span class="dot dot-ok"></span> Підключено <span class="kb-hint" onclick="showKbHelp()" title="Keyboard shortcuts">⌨ ?</span>'
-    : '<span class="dot dot-err"></span> Немає зв\'язку <span class="kb-hint" onclick="showKbHelp()" title="Keyboard shortcuts">⌨ ?</span>';
+    ? `<span class="dot dot-ok"></span> Підключено <span class="kb-hint" onclick="showKbHelp()" title="Keyboard shortcuts">${IC.keyboard}</span>`
+    : `<span class="dot dot-err"></span> Немає зв'язку <span class="kb-hint" onclick="showKbHelp()" title="Keyboard shortcuts">${IC.keyboard}</span>`;
 }
 
 function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -829,6 +1245,7 @@ function markAllSeen() {
   renderFilters();
   render();
   updateMarkAllSeenBtn();
+  updateTabTitle();
 }
 
 function updateMarkAllSeenBtn() {
@@ -849,18 +1266,49 @@ function toggleExpandAll() {
   allExpanded = !allExpanded;
   const btn = document.getElementById('expandCollapseBtn');
   if (allExpanded) {
-    // Expand all visible cards
     document.querySelectorAll('.card:not(.deleting)').forEach(card => {
       card.classList.add('open');
       openCards.add(card.dataset.url);
+      const panel = card.querySelector('.card-panel');
+      if (panel) panel.style.maxHeight = 'none';
     });
-    btn.textContent = '↕ Згорнути всі';
+    btn.innerHTML = IC.chevsUpDown + ' Згорнути всі';
   } else {
     document.querySelectorAll('.card').forEach(card => {
       card.classList.remove('open');
+      const panel = card.querySelector('.card-panel');
+      if (panel) { panel.style.maxHeight = panel.scrollHeight + 'px'; requestAnimationFrame(() => { panel.style.maxHeight = '0'; }); }
     });
     openCards.clear();
-    btn.textContent = '↕ Розгорнути всі';
+    btn.innerHTML = IC.chevsUpDown + ' Розгорнути всі';
+  }
+}
+
+function toggleHideStale() {
+  hideStale = !hideStale;
+  localStorage.setItem('hideStale', hideStale ? '1' : '0');
+  updateHideStaleBtn();
+  renderFilters();
+  render();
+  if (statsVisible) renderStats();
+}
+
+function updateHideStaleBtn() {
+  const btn = document.getElementById('hideStaleBtn');
+  let staleCount = 0;
+  for (const s of allData) {
+    if (SKIP.includes(s.name)) continue;
+    for (const v of s.items) {
+      if (isStale(v)) staleCount++;
+    }
+  }
+  const eyeOpen = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>';
+  const eyeOff = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>';
+  btn.classList.toggle('toggled', hideStale);
+  if (hideStale && staleCount > 0) {
+    btn.innerHTML = eyeOff + ` Сховано ${staleCount} застарілих`;
+  } else {
+    btn.innerHTML = eyeOpen + ' Сховати застарілі';
   }
 }
 
@@ -868,7 +1316,7 @@ let statsVisible = false;
 function toggleStats() {
   statsVisible = !statsVisible;
   document.getElementById('statsPanel').style.display = statsVisible ? '' : 'none';
-  document.getElementById('statsToggle').textContent = statsVisible ? 'Статистика ▲' : 'Статистика ▼';
+  renderFilters();
   if (statsVisible) renderStats();
 }
 
@@ -914,11 +1362,11 @@ function renderStats() {
       </div>
       <div class="stat-card">
         <div class="stat-label">В обраному</div>
-        <div class="stat-value" style="color:var(--yellow)">★ ${favCount}</div>
+        <div class="stat-value" style="color:var(--yellow)">${favCount}</div>
       </div>
       <div class="stat-card">
         <div class="stat-label">З нотатками</div>
-        <div class="stat-value" style="color:var(--accent)">✎ ${noteCount}</div>
+        <div class="stat-value" style="color:var(--accent)">${noteCount}</div>
       </div>
       <div class="stat-card">
         <div class="stat-label">Pipeline</div>
@@ -987,6 +1435,9 @@ function showKbHelp() {
     <div class="kb-row"><span class="kb-key">s</span><span class="kb-desc">Змінити статус (pipeline)</span></div>
     <div class="kb-row"><span class="kb-key">n</span><span class="kb-desc">Редагувати нотатку</span></div>
     <div class="kb-row"><span class="kb-key">x</span><span class="kb-desc">Видалити вакансію</span></div>
+    <div class="kb-row"><span class="kb-key">v</span><span class="kb-desc">Перемкнути вигляд (картки/список)</span></div>
+    <div class="kb-row"><span class="kb-key">h</span><span class="kb-desc">Сховати/показати застарілі</span></div>
+    <div class="kb-row"><span class="kb-key">/</span><span class="kb-desc">Фокус на пошук</span></div>
     <div class="kb-row"><span class="kb-key">?</span><span class="kb-desc">Показати цю довідку</span></div>
     <div class="kb-row"><span class="kb-key">Esc</span><span class="kb-desc">Закрити / зняти фокус</span></div>
   </div>`;
@@ -1060,6 +1511,16 @@ document.addEventListener('keydown', (e) => {
         if (btn) del(btn);
       }
       break;
+    case 'v':
+      setView(activeView === 'card' ? 'list' : 'card');
+      break;
+    case 'h':
+      toggleHideStale();
+      break;
+    case '/':
+      e.preventDefault();
+      document.getElementById('searchBox').focus();
+      break;
     case '?':
       e.preventDefault();
       showKbHelp();
@@ -1113,7 +1574,11 @@ function exportCSV() {
 }
 
 load();
-setInterval(load, REFRESH);
+setInterval(poll, REFRESH);
+// Restore saved view mode
+if (activeView === 'list') setView('list');
+// Restore hide-stale toggle state
+if (hideStale) document.getElementById('hideStaleBtn').classList.add('toggled');
 </script>
 </body>
 </html>

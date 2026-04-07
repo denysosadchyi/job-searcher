@@ -102,6 +102,15 @@ def changelog_page():
     return send_file("changelog.html")
 
 
+@app.route("/api/config")
+def api_config():
+    try:
+        from config import PAGE_TITLE
+    except ImportError:
+        PAGE_TITLE = "Вакансії"
+    return jsonify({"page_title": PAGE_TITLE})
+
+
 @app.route("/api/changelog")
 def api_changelog():
     if os.path.exists(CHANGELOG_FILE):
