@@ -33,17 +33,49 @@
     -webkit-font-smoothing: antialiased;
     font-weight: 400; line-height: 1.5;
   }
-  header { text-align: center; padding: 16px 0 20px; }
+  header { text-align: center; padding: 16px 0 12px; }
   header h1 { font-size: 1.3rem; font-weight: 510; color: var(--text); letter-spacing: -0.4px; }
   .back { color: var(--accent-bright); text-decoration: none; font-size: 0.8rem; font-weight: 510; }
   .back:hover { color: var(--accent-hover); text-decoration: underline; }
 
+  .toolbar {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 16px; padding: 0;
+  }
+  .search-box {
+    flex: 1; background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 8px 12px; color: var(--text); font-size: 0.82rem;
+    font-family: inherit; outline: none; transition: border-color .15s;
+  }
+  .search-box::placeholder { color: var(--muted-deep); }
+  .search-box:focus { border-color: rgba(113,112,255,.4); }
+  .entry-count {
+    color: var(--muted-deep); font-size: 0.72rem; font-weight: 510;
+    white-space: nowrap; letter-spacing: .3px;
+  }
+
+  .week-header {
+    color: var(--muted); font-size: 0.7rem; font-weight: 590;
+    text-transform: uppercase; letter-spacing: .8px;
+    padding: 20px 0 8px; margin: 0;
+    border-bottom: 1px solid var(--border-subtle);
+    margin-bottom: 12px;
+    display: flex; align-items: baseline; gap: 8px;
+  }
+  .week-header:first-child { padding-top: 0; }
+  .week-count {
+    font-size: 0.65rem; color: var(--muted-deep); font-weight: 400;
+  }
+
   .entry {
     background: var(--card); border: 1px solid var(--border);
     border-radius: 8px; padding: 16px; margin-bottom: 12px;
-    transition: border-color .2s;
+    transition: border-color .2s, opacity .2s;
   }
   .entry:hover { border-color: rgba(255,255,255,0.12); }
+  .entry.dimmed { opacity: 0.35; }
+  .entry.dimmed:hover { opacity: 0.7; }
   .entry-date {
     color: var(--muted); font-size: 0.75rem; font-weight: 510;
     text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px;
@@ -69,69 +101,165 @@
     margin-top: 4px; opacity: .8;
   }
   .entry .verification strong { color: var(--green-bright); }
+  mark.hl {
+    background: rgba(94,106,210,.25); color: var(--accent-hover);
+    border-radius: 2px; padding: 0 2px;
+  }
 
   .empty { color: var(--muted); text-align: center; padding: 60px 0; font-size: .9rem; }
+  .no-results { color: var(--muted-deep); text-align: center; padding: 40px 0; font-size: .85rem; }
+
+  @media (max-width: 600px) {
+    body { padding: 12px; }
+    .entry { padding: 12px; }
+    .toolbar { flex-wrap: wrap; }
+    .search-box { min-width: 0; }
+  }
 </style>
 </head>
 <body>
 <header>
-  <a href="/" class="back">← Вакансії</a>
-  <h1>Changelog — Autonomous Improvements</h1>
+  <a href="/" class="back">&larr; Вакансії</a>
+  <h1>Changelog &mdash; Autonomous Improvements</h1>
 </header>
+<div class="toolbar">
+  <input class="search-box" type="text" placeholder="Пошук по changelog..." oninput="onSearch(this.value)">
+  <span class="entry-count" id="count"></span>
+</div>
 <div id="app"><div class="empty">Завантаження...</div></div>
 
 <script>
+let allEntries = [];
+let searchQuery = '';
+
 async function load() {
   try {
     const r = await fetch('/api/changelog');
     const data = await r.json();
-    render(data.content);
+    allEntries = parseEntries(data.content);
+    renderEntries(allEntries);
   } catch(e) {
     document.getElementById('app').innerHTML = '<div class="empty">Помилка завантаження</div>';
   }
 }
 
-function render(md) {
-  const entries = md.split(/^---$/m).filter(s => s.trim() && !s.includes('# Changelog'));
+function parseEntries(md) {
+  const raw = md.split(/^---$/m).filter(s => s.trim() && !s.includes('# Changelog'));
+  const entries = [];
+  for (const block of raw) {
+    const lines = block.trim().split('\n').filter(l => l.trim());
+    let date = '', title = '', body = [];
+    for (const line of lines) {
+      if (line.startsWith('## ')) date = line.replace('## ', '');
+      else if (line.startsWith('### ')) title = line.replace('### ', '');
+      else body.push(line);
+    }
+    entries.push({ date, title, body, raw: block });
+  }
+  return entries.reverse();
+}
+
+function getWeekLabel(dateStr) {
+  // dateStr like "2026-04-20 03:03"
+  const m = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!m) return 'Інше';
+  const d = new Date(+m[1], +m[2] - 1, +m[3]);
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const diffDays = Math.floor((today - d) / 86400000);
+
+  if (diffDays < 0) return 'Сьогодні';
+  if (diffDays === 0) return 'Сьогодні';
+  if (diffDays <= 6) return 'Цей тиждень';
+  if (diffDays <= 13) return 'Минулий тиждень';
+
+  // Show month + week number within month
+  const monthNames = ['Січень','Лютий','Березень','Квітень','Травень','Червень','Липень','Серпень','Вересень','Жовтень','Листопад','Грудень'];
+  const weekOfMonth = Math.ceil(+m[3] / 7);
+  return `${monthNames[+m[2]-1]} ${m[1]}, тиждень ${weekOfMonth}`;
+}
+
+function onSearch(val) {
+  searchQuery = val.toLowerCase().trim();
+  const filtered = searchQuery
+    ? allEntries.filter(e => {
+        const text = (e.date + ' ' + e.title + ' ' + e.body.join(' ')).toLowerCase();
+        const words = searchQuery.split(/\s+/);
+        return words.every(w => text.includes(w));
+      })
+    : allEntries;
+  renderEntries(filtered);
+}
+
+function renderEntries(entries) {
+  const total = allEntries.length;
+  const shown = entries.length;
+  document.getElementById('count').textContent = searchQuery
+    ? `${shown} з ${total}`
+    : `${total} записів`;
+
+  if (!entries.length && searchQuery) {
+    document.getElementById('app').innerHTML = '<div class="no-results">Нічого не знайдено</div>';
+    return;
+  }
   if (!entries.length) {
     document.getElementById('app').innerHTML = '<div class="empty">Ще немає записів. Перший запис з\'явиться після нічного запуску о 3:00.</div>';
     return;
   }
 
   let html = '';
-  for (const entry of entries.reverse()) {
-    const lines = entry.trim().split('\n').filter(l => l.trim());
-    let date = '', title = '', body = [];
-    for (const line of lines) {
-      if (line.startsWith('## ')) { date = line.replace('## ', ''); }
-      else if (line.startsWith('### ')) { title = line.replace('### ', ''); }
-      else { body.push(line); }
+  let currentWeek = '';
+
+  for (const e of entries) {
+    const week = getWeekLabel(e.date);
+    if (week !== currentWeek) {
+      const weekEntries = entries.filter(x => getWeekLabel(x.date) === week);
+      currentWeek = week;
+      html += `<div class="week-header">${esc(week)}<span class="week-count">${weekEntries.length}</span></div>`;
     }
     html += `<div class="entry">
-      ${date ? `<div class="entry-date">${esc(date)}</div>` : ''}
-      ${title ? `<h3>${esc(title)}</h3>` : ''}
-      ${body.map(l => renderLine(l)).join('')}
+      ${e.date ? `<div class="entry-date">${searchQuery ? highlight(e.date) : esc(e.date)}</div>` : ''}
+      ${e.title ? `<h3>${searchQuery ? highlight(e.title) : esc(e.title)}</h3>` : ''}
+      ${e.body.map(l => renderLine(l)).join('')}
     </div>`;
   }
+
   document.getElementById('app').innerHTML = html;
 }
 
 function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
+function highlight(text) {
+  if (!searchQuery) return esc(text);
+  const words = searchQuery.split(/\s+/).filter(Boolean);
+  let result = esc(text);
+  for (const w of words) {
+    const escaped = w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const re = new RegExp(`(${escaped})`, 'gi');
+    result = result.replace(re, '<mark class="hl">$1</mark>');
+  }
+  return result;
+}
+
 function renderMd(s) {
   let t = esc(s);
-  // **bold** -> <strong>bold</strong>
   t = t.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-  // `code` -> <code>code</code>
   t = t.replace(/`([^`]+)`/g, '<code>$1</code>');
-  // *italic* -> <em>italic</em> (but not inside already-processed tags)
   t = t.replace(/(?<!\w)\*([^*]+)\*(?!\w)/g, '<em>$1</em>');
+  if (searchQuery) {
+    const words = searchQuery.split(/\s+/).filter(Boolean);
+    for (const w of words) {
+      const escaped = w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const re = new RegExp(`(${escaped})`, 'gi');
+      // Only highlight in text nodes (not inside tags)
+      t = t.replace(/>([^<]+)</g, (m, inner) => '>' + inner.replace(re, '<mark class="hl">$1</mark>') + '<');
+    }
+  }
   return t;
 }
 
 function renderLine(line) {
   const trimmed = line.trim();
-  // Detect special sections for styling
   if (trimmed.startsWith('**Змінені файли:**') || trimmed.startsWith('**Files changed:**')) {
     return `<div class="files-changed">${renderMd(trimmed)}</div>`;
   }
@@ -140,6 +268,22 @@ function renderLine(line) {
   }
   return `<p>${renderMd(trimmed)}</p>`;
 }
+
+// Keyboard: "/" focuses search, Esc clears
+document.addEventListener('keydown', e => {
+  if (e.key === '/' && document.activeElement.tagName !== 'INPUT') {
+    e.preventDefault();
+    document.querySelector('.search-box').focus();
+  }
+  if (e.key === 'Escape') {
+    const box = document.querySelector('.search-box');
+    if (document.activeElement === box) {
+      box.value = '';
+      onSearch('');
+      box.blur();
+    }
+  }
+});
 
 load();
 </script>

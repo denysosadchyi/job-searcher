@@ -34,7 +34,7 @@ except ImportError:
 KEYWORDS = [k.lower() for k in TITLE_KEYWORDS]
 
 
-def log(msg):
+def log(msg: str) -> None:
     ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     line = f"[{ts}] {msg}"
     print(line)
@@ -42,7 +42,7 @@ def log(msg):
         f.write(line + "\n")
 
 
-def fetch_html(url):
+def fetch_html(url: str) -> str:
     try:
         req = urllib.request.Request(url, headers=HEADERS)
         with urllib.request.urlopen(req, timeout=15) as resp:
@@ -52,7 +52,7 @@ def fetch_html(url):
         return ""
 
 
-def get_existing_urls():
+def get_existing_urls() -> set:
     if not os.path.exists(MD_FILE):
         return set()
     with open(MD_FILE, "r", encoding="utf-8") as f:
@@ -60,7 +60,7 @@ def get_existing_urls():
     return set(re.findall(r'\((https?://[^)]+)\)', content))
 
 
-def is_relevant(title):
+def is_relevant(title: str) -> bool:
     """Check if vacancy title is relevant (UI/UX/Product Design)."""
     t = title.lower()
     return any(kw in t for kw in KEYWORDS)
@@ -161,202 +161,11 @@ def check_workua():
     return results
 
 
-def check_linkedin():
-    """LinkedIn — public job search (no auth needed for basic listing)."""
-    log("Checking LinkedIn...")
-    html = fetch_html(
-        "https://www.linkedin.com/jobs/search/?keywords=Senior+UI+UX+Designer&location=Ukraine"
-    )
-    if not html:
-        return []
-
-    existing = get_existing_urls()
-    results = []
-
-    # Pattern: href="https://XX.linkedin.com/jobs/view/SLUG-ID"
-    for m in re.finditer(
-        r'href="(https://[a-z]+\.linkedin\.com/jobs/view/([^"?]+))"',
-        html
-    ):
-        url = m.group(1)
-        slug = m.group(2)
-        if url in existing:
-            continue
-
-        # Convert slug to title: "senior-ux-designer-at-company-12345" -> "Senior UX Designer at Company"
-        title_parts = slug.rsplit('-', 1)[0]  # remove trailing ID
-        title = title_parts.replace('-', ' ').title()
-        if is_relevant(title):
-            results.append({"title": title, "url": url, "section": "LinkedIn"})
-
-    log(f"  Found {len(results)} new on LinkedIn")
-    return results
-
-
-def check_weworkremotely():
-    """We Work Remotely — remote design jobs."""
-    log("Checking WeWorkRemotely...")
-    html = fetch_html("https://weworkremotely.com/categories/remote-design-jobs")
-    if not html:
-        return []
-
-    existing = get_existing_urls()
-    results = []
-
-    for m in re.finditer(
-        r'<a[^>]*href="(/remote-jobs/[^"]+)"[^>]*>',
-        html
-    ):
-        path = m.group(1)
-        url = f"https://weworkremotely.com{path}"
-        if url in existing:
-            continue
-
-        # Get title from nearby text
-        start = m.end()
-        chunk = html[start:start + 300]
-        title_m = re.search(r'>([^<]{8,})<', chunk)
-        if title_m:
-            title = title_m.group(1).strip()
-            if is_relevant(title):
-                results.append({"title": title, "url": url, "section": "WeWorkRemotely"})
-
-    results = results[:10]
-    log(f"  Found {len(results)} new on WeWorkRemotely")
-    return results
-
-
-def check_uiuxjobsboard():
-    """uiuxjobsboard.com — specialized UX/UI job board."""
-    log("Checking UIUXJobsBoard...")
-    html = fetch_html("https://uiuxjobsboard.com/design-jobs/remote")
-    if not html:
-        return []
-
-    existing = get_existing_urls()
-    results = []
-
-    for m in re.finditer(
-        r'href="(/job/(\d+)-([^"]+))"',
-        html
-    ):
-        path = m.group(1)
-        slug = m.group(3)
-        url = f"https://uiuxjobsboard.com{path}"
-        if url in existing:
-            continue
-
-        # Derive title from URL slug: "remote-anywhere-senior-product-designer" -> "Senior Product Designer"
-        parts = slug.replace('remote-', '').replace('anywhere-', '')
-        # Remove country prefixes
-        for prefix in ['united-states-', 'europe-', 'ireland-', 'uk-', 'canada-', 'germany-']:
-            parts = parts.replace(prefix, '')
-        title = parts.replace('-', ' ').title()
-
-        if is_relevant(title):
-            results.append({"title": title, "url": url, "section": "UIUXJobsBoard"})
-
-    # Limit to 15 per source to avoid flooding
-    results = results[:15]
-    log(f"  Found {len(results)} new on UIUXJobsBoard")
-    return results
-
-
-def check_builtin():
-    """Built In — remote design jobs."""
-    log("Checking BuiltIn...")
-    html = fetch_html("https://builtin.com/jobs/remote/design-ux/search/senior-ux-designer")
-    if not html:
-        return []
-
-    existing = get_existing_urls()
-    results = []
-
-    for m in re.finditer(r'href="(/job/[^"]+)"', html):
-        path = m.group(1)
-        url = f"https://builtin.com{path}"
-        if url in existing:
-            continue
-
-        start = m.end()
-        chunk = html[start:start + 300]
-        title_m = re.search(r'>([^<]{8,})<', chunk)
-        if title_m:
-            title = title_m.group(1).strip()
-            if is_relevant(title):
-                results.append({"title": title, "url": url, "section": "BuiltIn"})
-
-    log(f"  Found {len(results)} new on BuiltIn")
-    return results
-
-
-def check_remoterocketship():
-    """Remote Rocketship — remote jobs aggregator."""
-    log("Checking RemoteRocketship...")
-    html = fetch_html("https://www.remoterocketship.com/country/ukraine/jobs/ui-ux-designer/")
-    if not html:
-        return []
-
-    existing = get_existing_urls()
-    results = []
-
-    for m in re.finditer(
-        r'href="(/company/[^/]+/jobs/[^"]+)"',
-        html
-    ):
-        path = m.group(1)
-        url = f"https://www.remoterocketship.com{path}"
-        if url in existing:
-            continue
-
-        start = m.end()
-        chunk = html[start:start + 300]
-        title_m = re.search(r'>([^<]{8,})<', chunk)
-        if title_m:
-            title = title_m.group(1).strip()
-            if is_relevant(title):
-                results.append({"title": title, "url": url, "section": "RemoteRocketship"})
-
-    results = results[:10]
-    log(f"  Found {len(results)} new on RemoteRocketship")
-    return results
-
-
-def check_glassdoor():
-    """Glassdoor — job search."""
-    log("Checking Glassdoor...")
-    html = fetch_html(
-        "https://www.glassdoor.com/Job/ukraine-ux-ui-designer-jobs-SRCH_IL.0,7_IN244_KO8,22.htm"
-    )
-    if not html:
-        return []
-
-    existing = get_existing_urls()
-    results = []
-
-    for m in re.finditer(r'href="(/job-listing/[^"]+)"', html):
-        path = m.group(1)
-        url = f"https://www.glassdoor.com{path}"
-        if url in existing:
-            continue
-
-        start = m.end()
-        chunk = html[start:start + 300]
-        title_m = re.search(r'>([^<]{8,})<', chunk)
-        if title_m:
-            title = title_m.group(1).strip()
-            if is_relevant(title):
-                results.append({"title": title, "url": url, "section": "Glassdoor"})
-
-    log(f"  Found {len(results)} new on Glassdoor")
-    return results
-
-
 # ============================================================
 # ANALYSIS & MD FILE MANAGEMENT
 # ============================================================
 
-def add_vacancy_to_md(section_name, title, url):
+def add_vacancy_to_md(section_name: str, title: str, url: str) -> None:
     """Add a new vacancy line to the appropriate section in vacancies.md."""
     with open(MD_FILE, "r", encoding="utf-8") as f:
         content = f.read()
@@ -419,7 +228,7 @@ def update_date():
         f.write(content)
 
 
-def analyze_vacancy(title, url):
+def analyze_vacancy(title: str, url: str) -> dict | None:
     """Analyze vacancy with Groq API."""
     try:
         from analyze_new import fetch_page, analyze_with_groq, GROQ_KEY

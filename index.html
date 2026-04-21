@@ -40,7 +40,10 @@
     background: var(--bg);
     color: var(--text-secondary);
     padding: 12px;
-    padding-bottom: 60px;
+    padding-top: max(12px, env(safe-area-inset-top));
+    padding-left: max(12px, env(safe-area-inset-left));
+    padding-right: max(12px, env(safe-area-inset-right));
+    padding-bottom: calc(72px + env(safe-area-inset-bottom));
     max-width: 100%;
     margin: 0 auto;
     -webkit-font-smoothing: antialiased;
@@ -53,16 +56,36 @@
     padding: 16px 0 4px;
   }
   header h1 { font-size: 1.3rem; font-weight: 510; color: var(--text); letter-spacing: -0.4px; }
-  .meta { color: var(--muted); font-size: 0.75rem; }
+  .meta { color: var(--muted); font-size: 0.75rem; display: flex; align-items: baseline; gap: 8px; }
+  .changelog-link {
+    color: var(--muted-deep); text-decoration: none; font-size: 0.7rem; font-weight: 510;
+    border: 1px solid var(--border-subtle); padding: 2px 8px; border-radius: 9999px;
+    transition: all .15s;
+  }
+  .changelog-link:hover { color: var(--accent-bright); border-color: rgba(113,112,255,.3); }
+  .last-check { color: var(--muted-deep); font-size: 0.68rem; margin: 0 12px; }
 
   /* Segmented filter control */
+  .filters-wrap {
+    position: relative;
+    margin: 12px 0 4px;
+  }
+  .filters-wrap::after {
+    content: '';
+    position: absolute; top: 0; right: 0; bottom: 0;
+    width: 24px; pointer-events: none;
+    background: linear-gradient(to right, transparent, var(--bg));
+    border-radius: 0 8px 8px 0;
+    opacity: 0; transition: opacity .15s;
+  }
+  .filters-wrap.scrollable::after { opacity: 1; }
   .filters {
     display: flex; padding: 2px;
-    margin: 12px 0 4px;
     background: rgba(255,255,255,0.02);
     border: 1px solid rgb(45,47,53);
     border-radius: 8px;
     overflow-x: auto; -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
   }
   .filters::-webkit-scrollbar { display: none; }
   .filter-btn {
@@ -113,11 +136,16 @@
   .sort-btn:hover:not(.active) { color: var(--text-secondary); background: rgba(255,255,255,0.03); }
 
   /* Search */
+  .search-wrap {
+    position: relative;
+    width: 180px;
+    display: flex; align-items: center;
+  }
   .search-box {
     background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08);
     color: var(--text); font-size: 14px; padding: 0 14px;
     height: 36px;
-    border-radius: 6px; outline: none; width: 180px;
+    border-radius: 6px; outline: none; width: 100%;
     transition: border-color .2s; font-family: inherit; font-feature-settings: "cv01", "ss03";
   }
   .search-box::placeholder { color: var(--muted-deep); }
@@ -130,7 +158,29 @@
     padding: 0 0 8px; margin-bottom: 0;
     display: flex; justify-content: space-between; align-items: center;
     letter-spacing: -0.13px; text-transform: uppercase;
+    cursor: pointer; user-select: none;
+    border-radius: 6px; padding: 6px 8px 6px 4px;
+    transition: background .15s;
+    position: sticky; top: 0; z-index: 10;
+    background: var(--bg);
+    -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
   }
+  .section-hdr.stuck {
+    background: rgba(17,17,19,0.92);
+    border-bottom: 1px solid var(--border-subtle);
+    border-radius: 0;
+  }
+  .section-hdr:hover { background: rgba(255,255,255,0.03); }
+  .section-hdr:hover.stuck { background: rgba(30,31,35,0.95); }
+  .section-hdr:active { background: rgba(255,255,255,0.05); }
+  .section-chevron {
+    width: 16px; height: 16px; flex-shrink: 0;
+    transition: transform .2s; margin-right: 4px;
+    color: var(--muted-deep);
+  }
+  .section.collapsed .section-chevron { transform: rotate(-90deg); }
+  .section.collapsed .section-cards { display: none; }
+  .section-left { display: flex; align-items: center; gap: 2px; }
   .section-count {
     background: transparent; color: var(--muted-deep);
     font-size: 11px; padding: 0; font-weight: 510;
@@ -166,7 +216,38 @@
     border-radius: 8px;
     display: flex; align-items: center; justify-content: center;
     font-size: 13px; font-weight: 590;
+    position: relative;
   }
+  .score-badge .score-tip {
+    display: none;
+    position: absolute;
+    left: 50%; top: calc(100% + 8px);
+    transform: translateX(-50%);
+    width: 280px;
+    background: var(--surface); color: var(--text-secondary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 0.78rem; font-weight: 400;
+    line-height: 1.5;
+    box-shadow: 0 8px 24px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,0.04);
+    z-index: 50;
+    pointer-events: none;
+    white-space: normal;
+    text-align: left;
+    letter-spacing: 0;
+  }
+  .score-badge .score-tip::before {
+    content: '';
+    position: absolute;
+    left: 50%; top: -5px;
+    transform: translateX(-50%) rotate(45deg);
+    width: 8px; height: 8px;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    border-left: 1px solid var(--border);
+  }
+  .score-badge:hover .score-tip { display: block; }
   .score-high { background: rgba(16,185,129,.15); color: var(--green-bright); }
   .score-mid { background: rgba(255,165,2,.15); color: var(--yellow); }
   .score-low { background: rgba(255,71,87,.1); color: var(--red); }
@@ -195,6 +276,11 @@
   .tag-fresh { color: var(--green-bright); border-color: rgba(16,185,129,.25); }
   .tag-aging { color: var(--yellow); border-color: rgba(255,165,2,.2); }
   .tag-stale { color: var(--red); border-color: rgba(255,71,87,.15); opacity: .7; }
+  .tag-type-product { color: var(--green-bright); border-color: rgba(16,185,129,.25); }
+  .tag-type-outsource { color: var(--yellow); border-color: rgba(255,165,2,.2); }
+  .tag-type-agency { color: #e0a0ff; border-color: rgba(224,160,255,.25); }
+  .tag-type-gambling { color: var(--red); border-color: rgba(255,71,87,.2); }
+  .tag-type-startup { color: #60d0f0; border-color: rgba(96,208,240,.25); }
   .card.stale { opacity: .55; }
   .card.stale:hover { opacity: .85; }
   .tag-inactive { color: var(--red); border-color: rgba(255,71,87,.2); }
@@ -224,6 +310,15 @@
   }
   .btn-icon svg { width: 15px; height: 15px; }
   .btn-icon:hover { background: rgba(255,255,255,0.06); color: var(--text); }
+  .btn-apply {
+    background: rgba(16,185,129,.12); border: 1px solid rgba(16,185,129,.25);
+    color: var(--green-bright); cursor: pointer; border-radius: 9999px;
+    font-size: 11px; font-weight: 510; padding: 0 10px; height: 28px;
+    display: inline-flex; align-items: center; gap: 4px;
+    transition: all .15s; white-space: nowrap; font-family: inherit;
+  }
+  .btn-apply svg { width: 12px; height: 12px; }
+  .btn-apply:hover { background: rgba(16,185,129,.22); border-color: rgba(16,185,129,.4); }
   .btn-fav.faved { color: var(--yellow); }
   .btn-fav:hover { background: rgba(255,165,2,.12); color: var(--yellow); }
   .btn-del:hover { background: var(--danger-bg); color: var(--danger); }
@@ -426,6 +521,52 @@
   .toast-dismiss:hover { color: #fff; }
   .toast-dismiss svg { width: 14px; height: 14px; }
 
+  .micro-toast {
+    position: fixed; bottom: 80px; left: 50%;
+    transform: translateX(-50%) translateY(10px);
+    background: var(--green-bright); color: #000;
+    font-size: 13px; font-weight: 590; padding: 8px 18px;
+    border-radius: 9999px; z-index: 200;
+    opacity: 0; transition: all .3s cubic-bezier(.16,1,.3,1);
+    pointer-events: none; letter-spacing: -0.1px;
+  }
+  .micro-toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* Undo snackbar */
+  .undo-snackbar {
+    position: fixed; bottom: 40px; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--surface); color: var(--text-secondary);
+    border: 1px solid var(--border);
+    font-size: 13px; font-weight: 510; padding: 10px 16px;
+    border-radius: 10px; z-index: 210;
+    opacity: 0; transition: all .3s cubic-bezier(.16,1,.3,1);
+    pointer-events: none; display: flex; align-items: center; gap: 12px;
+    box-shadow: 0 8px 30px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.04);
+    letter-spacing: -0.1px; white-space: nowrap;
+  }
+  .undo-snackbar.visible { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
+  .undo-snackbar .undo-btn {
+    background: none; border: 1px solid var(--accent); color: var(--accent-bright);
+    font-size: 13px; font-weight: 590; padding: 4px 14px;
+    border-radius: 9999px; cursor: pointer; transition: all .15s;
+    letter-spacing: -0.1px;
+  }
+  .undo-snackbar .undo-btn:hover { background: rgba(94,106,210,.15); color: var(--accent-hover); }
+  .undo-snackbar .undo-timer {
+    width: 20px; height: 20px; border-radius: 50%;
+    border: 2px solid var(--muted-deep); border-top-color: var(--accent-bright);
+    animation: undo-spin 5s linear forwards;
+  }
+  @keyframes undo-spin {
+    to { transform: rotate(1turn); border-top-color: var(--muted-deep); }
+  }
+  .card.pending-delete {
+    opacity: 0.25; max-height: 120px; overflow: hidden;
+    transition: opacity .3s, max-height .3s;
+    pointer-events: none;
+  }
+
   /* Stats panel */
   .stats-panel {
     display: grid;
@@ -505,6 +646,33 @@
     font-weight: 590;
     margin-left: 3px;
   }
+  /* Activity chart */
+  .activity-chart {
+    display: flex; align-items: flex-end; gap: 3px;
+    height: 48px; margin-top: 8px;
+  }
+  .activity-bar-wrap {
+    flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px;
+    height: 100%;
+  }
+  .activity-bar {
+    width: 100%; border-radius: 3px 3px 1px 1px;
+    background: var(--accent); opacity: 0.7;
+    transition: opacity .15s;
+    min-height: 0;
+    margin-top: auto;
+  }
+  .activity-bar:hover { opacity: 1; }
+  .activity-bar.today { background: var(--green-bright); opacity: 0.9; }
+  .activity-bar-label {
+    font-size: 8px; color: var(--muted-deep); line-height: 1;
+    white-space: nowrap;
+  }
+  .activity-summary {
+    display: flex; gap: 12px; margin-top: 6px;
+    font-size: 11px; color: var(--muted);
+  }
+  .activity-summary b { color: var(--text-secondary); font-weight: 590; }
   /* Stats button icon inside filters */
   .filter-btn svg { width: 14px; height: 14px; }
 
@@ -525,6 +693,62 @@
   .action-btn:active { transform: scale(.97); }
   .action-btn.hidden { display: none; }
   .action-btn.toggled { background: rgba(94,106,210,.12); border-color: rgba(113,112,255,.3); color: var(--accent-bright); }
+
+  /* Batch select mode */
+  .card-checkbox {
+    display: none; align-items: center; justify-content: center;
+    width: 20px; height: 20px; flex-shrink: 0;
+    border: 1.5px solid var(--border); border-radius: 4px;
+    cursor: pointer; transition: all .15s; margin-right: 6px;
+    background: transparent;
+  }
+  .card-checkbox:hover { border-color: var(--accent); }
+  .card-checkbox.checked { background: var(--accent); border-color: var(--accent); }
+  .card-checkbox.checked::after { content: '✓'; color: #fff; font-size: 12px; font-weight: 700; }
+  .select-mode .card-checkbox { display: inline-flex; }
+  .select-mode .card.selected { border-color: rgba(113,112,255,.35); background: rgba(94,106,210,.06); }
+
+  .bulk-bar {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: rgba(17,17,19,0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border-top: 1px solid var(--border);
+    padding: 10px 16px; display: none; align-items: center; justify-content: center; gap: 12px;
+    z-index: 100;
+    animation: bulkSlideUp .2s ease;
+  }
+  @keyframes bulkSlideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .bulk-bar.visible { display: flex; }
+  .bulk-count { color: var(--text); font-size: 13px; font-weight: 510; margin-right: 8px; }
+  .bulk-btn {
+    background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+    color: var(--text-secondary); font-size: 12px; font-weight: 510;
+    padding: 6px 14px; border-radius: 6px; cursor: pointer;
+    transition: all .15s; display: inline-flex; align-items: center; gap: 5px;
+  }
+  .bulk-btn:hover { background: rgba(255,255,255,0.07); color: var(--text); }
+  .bulk-btn.bulk-del { border-color: rgba(255,71,87,.3); }
+  .bulk-btn.bulk-del:hover { background: var(--danger-bg); color: var(--danger); border-color: rgba(255,71,87,.5); }
+  .bulk-btn.bulk-fav { border-color: rgba(255,165,2,.25); }
+  .bulk-btn.bulk-fav:hover { background: rgba(255,165,2,.08); color: var(--yellow); border-color: rgba(255,165,2,.45); }
+  .bulk-btn.bulk-pipeline { border-color: rgba(94,106,210,.3); }
+  .bulk-btn.bulk-pipeline:hover { background: rgba(94,106,210,.08); color: var(--accent-bright); border-color: rgba(94,106,210,.5); }
+  .bulk-pipeline-menu {
+    position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 4px; margin-bottom: 6px;
+    display: none; flex-direction: column; min-width: 140px;
+    box-shadow: 0 8px 30px rgba(0,0,0,.4), 0 0 0 1px rgba(0,0,0,.2);
+    z-index: 110;
+  }
+  .bulk-pipeline-menu.visible { display: flex; }
+  .bulk-pipeline-opt {
+    background: none; border: none; color: var(--text-secondary);
+    font-size: 12px; font-weight: 510; padding: 7px 12px;
+    border-radius: 5px; cursor: pointer; text-align: left;
+    transition: all .12s;
+  }
+  .bulk-pipeline-opt:hover { background: rgba(255,255,255,0.06); color: var(--text); }
+  .bulk-btn.bulk-desel { color: var(--muted); }
 
   /* View toggle */
   .view-toggle {
@@ -571,13 +795,235 @@
   .list-view .panel-inner { padding: 0 10px 10px; }
   .list-view .section { margin-top: 14px; }
 
-  /* Mobile: actions drop to own row */
+  /* More + search buttons (mobile toolbar) + backdrop — hidden on desktop */
+  .tb-more-btn, .tb-search-btn { display: none; }
+  .more-backdrop { display: none; }
+
+  /* Mobile optimizations — consolidated 2-row chrome */
   @media (max-width: 599px) {
-    .card-header { gap: 8px; }
-    .card-info { flex-basis: calc(100% - 64px); }
-    .card-actions { order: 10; margin-left: auto; padding-top: 2px; }
-    .toolbar { flex-wrap: wrap; }
-    .search-box { width: 100%; order: 10; margin-top: 4px; }
+    body { padding: 10px; padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
+
+    /* Compact header — single row, smaller title, icon changelog link */
+    header { padding: 6px 0 2px; flex-wrap: nowrap; gap: 8px; align-items: center; }
+    header h1 { font-size: 1.1rem; flex: 1; min-width: 0;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .meta { font-size: 0.68rem; flex-shrink: 0; gap: 6px; }
+    .last-check { display: none; }
+    .changelog-link { padding: 4px 10px; font-size: 0.68rem; }
+
+    /* Filters — row 1 of chrome */
+    .filter-btn { height: 40px; padding: 0 14px; font-size: 13px; scroll-snap-align: start; }
+    .filter-btn svg { width: 15px; height: 15px; }
+
+    /* Toolbar — row 2 of chrome: single row with sort + view + search + more */
+    .toolbar {
+      flex-wrap: nowrap; gap: 6px; padding: 6px 0 2px;
+      align-items: center;
+    }
+    .sort-group {
+      order: 1; flex: 1 1 auto; min-width: 0;
+      overflow-x: auto; -webkit-overflow-scrolling: touch;
+      scroll-snap-type: x proximity;
+    }
+    .sort-group::-webkit-scrollbar { display: none; }
+    .sort-label { display: none; }
+    .sort-btn { height: 36px; font-size: 12px; padding: 0 10px; scroll-snap-align: start; flex-shrink: 0; }
+
+    .view-toggle { order: 2; flex-shrink: 0; margin-left: 0; }
+    .view-btn { height: 36px; min-width: 38px; }
+    .view-btn svg { width: 17px; height: 17px; }
+
+    /* Search + More icon buttons — shared style */
+    .tb-search-btn, .tb-more-btn {
+      flex-shrink: 0;
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 40px; height: 40px;
+      background: rgba(255,255,255,0.02); border: 1px solid rgb(45,47,53);
+      color: var(--text-secondary); border-radius: 8px;
+      cursor: pointer; transition: all .15s;
+      position: relative;
+    }
+    .tb-search-btn svg { width: 17px; height: 17px; }
+    .tb-more-btn svg { width: 18px; height: 18px; }
+    .tb-search-btn:active, .tb-more-btn:active { transform: scale(.95); }
+    .tb-search-btn.active, .tb-more-btn.open {
+      background: rgba(94,106,210,.12);
+      border-color: rgba(113,112,255,.3);
+      color: var(--accent-bright);
+    }
+    .tb-search-btn { order: 3; }
+    .tb-more-btn { order: 4; }
+
+    /* Search query indicator — dot on icon */
+    .tb-search-btn.has-query::after {
+      content: ''; position: absolute; top: 3px; right: 3px;
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--accent-bright);
+      border: 2px solid var(--bg);
+    }
+
+    /* Search wrapper — hidden by default, expands inline when activated */
+    .search-wrap {
+      display: none;
+      width: 100%; order: 10; margin-top: 4px;
+      position: relative;
+    }
+    .toolbar.search-active .search-wrap { display: block; }
+    .search-box {
+      width: 100%;
+      height: 42px; font-size: 14px;
+      padding-right: 38px;
+    }
+
+    /* Clear button inside expanded search */
+    .search-clear {
+      position: absolute; right: 4px; top: 50%;
+      transform: translateY(-50%);
+      width: 34px; height: 34px;
+      display: none;
+      align-items: center; justify-content: center;
+      background: transparent; border: 0;
+      color: var(--muted); cursor: pointer;
+      border-radius: 50%;
+    }
+    .search-clear svg { width: 14px; height: 14px; }
+    .search-clear:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+    .search-wrap.has-value .search-clear { display: inline-flex; }
+
+    /* Actions-row — transforms into popup menu on mobile */
+    .actions-row {
+      position: fixed;
+      right: 10px; left: 10px;
+      top: auto;
+      bottom: calc(60px + env(safe-area-inset-bottom));
+      flex-direction: column;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 6px;
+      gap: 0;
+      z-index: 90;
+      box-shadow: 0 16px 48px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04);
+      display: none;
+      transform: translateY(12px); opacity: 0;
+      transition: transform .22s cubic-bezier(.16,1,.3,1), opacity .18s;
+      overflow: hidden; max-width: calc(100vw - 20px);
+    }
+    .actions-row.open {
+      display: flex;
+      transform: translateY(0); opacity: 1;
+    }
+    .actions-row .action-btn {
+      justify-content: flex-start;
+      height: 48px;
+      padding: 0 14px;
+      gap: 12px;
+      border: 0;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: 14px;
+      width: 100%;
+    }
+    .actions-row .action-btn:hover { background: rgba(255,255,255,0.04); }
+    .actions-row .action-btn:active { background: rgba(255,255,255,0.07); transform: none; }
+    .actions-row .action-btn .action-label { display: inline; }
+    .actions-row .action-btn.toggled { color: var(--accent-bright); background: rgba(94,106,210,.08); }
+    .actions-row .action-btn.hidden { display: none; }
+
+    /* Backdrop for more menu */
+    .more-backdrop {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.35);
+      -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px);
+      z-index: 89;
+      opacity: 0; transition: opacity .18s;
+      pointer-events: none;
+    }
+    .more-backdrop.visible {
+      display: block; opacity: 1; pointer-events: auto;
+    }
+
+    /* Card spacing */
+    .card { margin-bottom: 8px; }
+    .card-header { gap: 8px; padding: 12px 10px; }
+    .card-info { flex-basis: calc(100% - 52px); min-width: 0; }
+    .card-actions { order: 10; margin-left: auto; padding-top: 4px; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
+
+    /* Larger touch targets inside cards */
+    .btn-icon { width: 38px; height: 38px; }
+    .btn-icon svg { width: 16px; height: 16px; }
+    .status-sel { height: 38px; font-size: 12px; padding: 0 26px 0 10px; background-position: right 10px center; }
+    .score-badge { width: 40px; height: 40px; font-size: 13px; }
+
+    /* Tooltip: constrain within viewport */
+    .score-badge .score-tip {
+      width: min(calc(100vw - 32px), 280px);
+      left: 0; transform: none;
+      max-width: 280px;
+    }
+    .score-badge .score-tip::before { left: 24px; }
+    .card:hover .score-badge .score-tip { display: none; }
+    .card.kb-focus .score-badge .score-tip { display: none; }
+
+    /* Panel */
+    .panel-inner { padding: 0 12px 14px; }
+    .panel-text { font-size: 0.82rem; line-height: 1.6; }
+    .note-text, .note-input { font-size: 0.82rem; }
+    .note-input { padding: 10px 12px; }
+    .note-save-btn, .note-cancel-btn { height: 38px; font-size: 13px; padding: 0 16px; }
+
+    /* Stats panel compact */
+    .stats-panel { grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 10px; }
+    .stat-card { padding: 10px 12px; }
+    .stat-value { font-size: 1rem; }
+
+    /* Status bar — safe area support */
+    .status-bar {
+      padding: 8px;
+      padding-bottom: calc(8px + env(safe-area-inset-bottom));
+      font-size: 0.7rem;
+    }
+
+    /* Bulk bar — touch friendly */
+    .bulk-bar {
+      padding: 10px 12px;
+      padding-bottom: calc(10px + env(safe-area-inset-bottom));
+      gap: 6px; overflow-x: auto; justify-content: flex-start;
+      -webkit-overflow-scrolling: touch;
+    }
+    .bulk-bar::-webkit-scrollbar { display: none; }
+    .bulk-count { font-size: 12px; margin-right: 4px; white-space: nowrap; }
+    .bulk-btn { font-size: 12px; padding: 9px 14px; flex-shrink: 0; }
+
+    /* Keyboard modal */
+    .kb-modal {
+      max-width: calc(100vw - 24px);
+      width: 100%;
+      padding: 18px 18px;
+      max-height: calc(100vh - 40px);
+      overflow-y: auto;
+    }
+    .kb-row { padding: 8px 0; font-size: 0.85rem; }
+
+    /* Toast */
+    .toast { top: calc(8px + env(safe-area-inset-top)); font-size: 12px; height: 38px; padding: 0 14px; max-width: calc(100vw - 24px); }
+
+    /* Sort/view containers */
+    .sort-group, .view-toggle { padding: 2px; border-radius: 8px; }
+  }
+
+  /* Very small phones (≤360px) */
+  @media (max-width: 360px) {
+    body { padding: 8px; }
+    header h1 { font-size: 1.05rem; }
+    .card-header { padding: 10px 8px; gap: 6px; }
+    .score-badge { width: 36px; height: 36px; font-size: 12px; }
+    .btn-icon { width: 34px; height: 34px; }
+    .sort-btn { padding: 0 8px; }
+    .view-btn { min-width: 34px; }
+    .tb-more-btn { width: 36px; height: 36px; }
   }
 
   /* Tablet+ */
@@ -589,7 +1035,7 @@
     .card-title { font-size: 15px; letter-spacing: -0.165px; }
     .stats-panel { grid-template-columns: 1fr 1fr 1fr; }
     .stat-card.wide { grid-column: 1 / -1; }
-    .search-box { width: 200px; }
+    .search-wrap { width: 200px; }
   }
 
   /* Desktop */
@@ -606,11 +1052,12 @@
     .sort-label { font-size: 13px; }
     .view-btn { height: 34px; }
     .view-btn svg { width: 17px; height: 17px; }
-    .search-box { width: 240px; height: 38px; font-size: 14px; }
+    .search-wrap { width: 240px; }
+    .search-box { height: 38px; font-size: 14px; }
     .actions-row { gap: 8px; padding: 6px 0; }
     .action-btn { height: 38px; font-size: 14px; }
     .section { margin-top: 32px; }
-    .section-hdr { font-size: 13px; padding: 0 0 10px; }
+    .section-hdr { font-size: 13px; padding: 6px 10px 6px 6px; }
     .card { margin-bottom: 8px; }
     .card-header { padding: 14px 20px; gap: 12px; }
     .score-badge { width: 40px; height: 40px; font-size: 14px; }
@@ -643,7 +1090,7 @@
     .card-header { padding: 16px 24px; }
     .score-badge { width: 44px; height: 44px; font-size: 15px; }
     .card-title { font-size: 16px; letter-spacing: normal; }
-    .search-box { width: 280px; }
+    .search-wrap { width: 280px; }
   }
 </style>
 </head>
@@ -651,10 +1098,10 @@
 
 <header>
   <h1 id="headerTitle">Вакансії</h1>
-  <div class="meta" id="meta"></div>
+  <div class="meta"><span id="meta"></span> <a href="/changelog" class="changelog-link">Changelog</a></div>
 </header>
 
-<div class="filters" id="filters"></div>
+<div class="filters-wrap" id="filtersWrap"><div class="filters" id="filters"></div></div>
 <div id="statsPanel" style="display:none"></div>
 <div class="toolbar">
   <div class="sort-group">
@@ -662,18 +1109,42 @@
     <button class="sort-btn active" onclick="setSort('default')">Default</button>
     <button class="sort-btn" onclick="setSort('score')">Score ↓</button>
     <button class="sort-btn" onclick="setSort('date')">Date ↓</button>
+    <button class="sort-btn" onclick="setSort('salary')">Salary ↓</button>
   </div>
   <div class="view-toggle">
     <button class="view-btn active" id="viewCard" onclick="setView('card')" title="Картки"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/></svg></button>
     <button class="view-btn" id="viewList" onclick="setView('list')" title="Компактний список"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/></svg></button>
   </div>
-  <input class="search-box" type="text" id="searchBox" placeholder="Пошук (кілька слів = AND)..." oninput="onSearch(this.value)">
+  <button class="tb-search-btn" id="searchBtn" onclick="toggleSearchInput(event)" aria-label="Пошук" title="Пошук"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></button>
+  <button class="tb-more-btn" id="moreBtn" onclick="toggleMoreMenu(event)" aria-label="Ще дії" title="Ще дії"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button>
+  <div class="search-wrap" id="searchWrap">
+    <input class="search-box" type="text" id="searchBox" placeholder="Пошук (кілька слів = AND)..." oninput="onSearch(this.value)">
+    <button class="search-clear" id="searchClear" onclick="clearSearch()" aria-label="Очистити пошук" title="Очистити"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+  </div>
 </div>
-<div class="actions-row">
-  <button class="action-btn hidden" id="markAllSeenBtn" onclick="markAllSeen()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M20 6 9 17l-5-5"/></svg> Позначити переглянутими</button>
-  <button class="action-btn" id="expandCollapseBtn" onclick="toggleExpandAll()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></svg> Розгорнути всі</button>
-  <button class="action-btn" onclick="exportCSV()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg> Експорт CSV</button>
-  <button class="action-btn" id="hideStaleBtn" onclick="toggleHideStale()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg> Сховати застарілі</button>
+<div class="more-backdrop" id="moreBackdrop" onclick="closeMoreMenu()"></div>
+<div class="actions-row" id="actionsRow">
+  <button class="action-btn hidden" id="markAllSeenBtn" onclick="markAllSeen()" aria-label="Позначити переглянутими" title="Позначити переглянутими"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M20 6 9 17l-5-5"/></svg> <span class="action-label">Позначити переглянутими</span></button>
+  <button class="action-btn" id="expandCollapseBtn" onclick="toggleExpandAll()" aria-label="Розгорнути всі" title="Розгорнути всі"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></svg> <span class="action-label">Розгорнути всі</span></button>
+  <button class="action-btn" onclick="exportCSV()" aria-label="Експорт CSV" title="Експорт CSV"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg> <span class="action-label">Експорт CSV</span></button>
+  <button class="action-btn" id="hideStaleBtn" onclick="toggleHideStale()" aria-label="Сховати застарілі" title="Сховати застарілі"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg> <span class="action-label">Сховати застарілі</span></button>
+  <button class="action-btn" id="selectModeBtn" onclick="toggleSelectMode()" aria-label="Виділити" title="Виділити"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> <span class="action-label">Виділити</span></button>
+</div>
+<div class="bulk-bar" id="bulkBar">
+  <span class="bulk-count" id="bulkCount">0 обрано</span>
+  <button class="bulk-btn bulk-fav" onclick="bulkFavorite()">★ В обране</button>
+  <span style="position:relative">
+    <button class="bulk-btn bulk-pipeline" onclick="toggleBulkPipeline(event)">⏵ Статус</button>
+    <div class="bulk-pipeline-menu" id="bulkPipelineMenu">
+      <button class="bulk-pipeline-opt" onclick="bulkSetStatus('Applied')">Applied</button>
+      <button class="bulk-pipeline-opt" onclick="bulkSetStatus('Interview')">Interview</button>
+      <button class="bulk-pipeline-opt" onclick="bulkSetStatus('Offer')">Offer</button>
+      <button class="bulk-pipeline-opt" onclick="bulkSetStatus('Rejected')">Rejected</button>
+      <button class="bulk-pipeline-opt" onclick="bulkSetStatus('')" style="color:var(--muted)">Скинути статус</button>
+    </div>
+  </span>
+  <button class="bulk-btn bulk-del" onclick="bulkDelete()">✕ Видалити</button>
+  <button class="bulk-btn bulk-desel" onclick="clearSelection()">Зняти виділення</button>
 </div>
 <div id="app"></div>
 
@@ -683,7 +1154,7 @@
   <button class="toast-dismiss" onclick="event.stopPropagation(); dismissToast()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
 </div>
 <div class="status-bar" id="statusBar">
-  <span class="dot dot-ok"></span> Підключено
+  <span class="dot dot-ok"></span> Підключено<span class="last-check" id="lastCheck"></span>
   <span class="kb-hint" onclick="showKbHelp()" title="Keyboard shortcuts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;vertical-align:middle"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="M6 8h.001"/><path d="M10 8h.001"/><path d="M14 8h.001"/><path d="M18 8h.001"/><path d="M8 12h.001"/><path d="M12 12h.001"/><path d="M16 12h.001"/><path d="M7 16h10"/></svg></span>
 </div>
 
@@ -701,6 +1172,7 @@ const IC = {
   download: `<svg ${_s}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>`,
   keyboard: `<svg ${_s}><rect width="20" height="16" x="2" y="4" rx="2"/><path d="M6 8h.001"/><path d="M10 8h.001"/><path d="M14 8h.001"/><path d="M18 8h.001"/><path d="M8 12h.001"/><path d="M12 12h.001"/><path d="M16 12h.001"/><path d="M7 16h10"/></svg>`,
   barChart: `<svg ${_s}><line x1="18" x2="18" y1="20" y2="4"/><line x1="12" x2="12" y1="20" y2="10"/><line x1="6" x2="6" y1="20" y2="16"/></svg>`,
+  send: `<svg ${_s}><path d="m22 2-7 20-4-9-9-4Z"/><path d="m22 2-11 11"/></svg>`,
 };
 
 const app = document.getElementById('app');
@@ -709,13 +1181,30 @@ const REFRESH = 30000;
 const SKIP = ['Пошукові запити для самостійного моніторингу'];
 
 let allData = [];
-let activeFilter = 'all';
-let activeSort = 'default';
+let activeFilter = localStorage.getItem('activeFilter') || 'all';
+let activeSort = localStorage.getItem('activeSort') || 'default';
+let savedSearch = localStorage.getItem('searchQuery') || '';
 let activeView = localStorage.getItem('viewMode') || 'card';
 let searchQuery = '';
 let openCards = new Set();
 let pageTitle = 'Вакансії';
 let hideStale = localStorage.getItem('hideStale') === '1';
+let selectMode = false;
+let selectedUrls = new Set();
+
+// Collapsed sections tracking via localStorage
+function getCollapsedSections() {
+  try { return new Set(JSON.parse(localStorage.getItem('collapsedSections') || '[]')); }
+  catch { return new Set(); }
+}
+function toggleSection(name) {
+  const collapsed = getCollapsedSections();
+  if (collapsed.has(name)) collapsed.delete(name); else collapsed.add(name);
+  localStorage.setItem('collapsedSections', JSON.stringify([...collapsed]));
+  const section = document.querySelector(`.section[data-section="${CSS.escape(name)}"]`);
+  if (section) section.classList.toggle('collapsed', collapsed.has(name));
+}
+function isSectionCollapsed(name) { return getCollapsedSections().has(name); }
 
 // Load page title from config
 async function loadConfig() {
@@ -743,6 +1232,31 @@ function updateTabTitle() {
 }
 
 loadConfig();
+
+let lastCheckText = '';
+async function loadLastCheck() {
+  try {
+    const r = await fetch('/api/last-check');
+    const data = await r.json();
+    if (data.last_check) {
+      // Format: "2026-04-09 03:03:33" -> relative time
+      const dt = new Date(data.last_check.replace(' ', 'T'));
+      const diffMs = Date.now() - dt.getTime();
+      const diffMin = Math.floor(diffMs / 60000);
+      const diffHr = Math.floor(diffMin / 60);
+      const diffDay = Math.floor(diffHr / 24);
+      let rel;
+      if (diffMin < 1) rel = 'щойно';
+      else if (diffMin < 60) rel = diffMin + ' хв тому';
+      else if (diffHr < 24) rel = diffHr + ' год тому';
+      else rel = diffDay + ' д тому';
+      lastCheckText = `Останній скан: ${rel}`;
+    }
+  } catch(e) {}
+}
+loadLastCheck();
+// Refresh last-check time periodically
+setInterval(loadLastCheck, 60000);
 
 // Seen tracking via localStorage
 function getSeenUrls() {
@@ -786,6 +1300,29 @@ function setStatus(url, status) {
   if (statsVisible) renderStats();
 }
 function getStatus(url) { return getStatuses()[url] || ''; }
+
+function quickApply(url) {
+  window.open(url, '_blank', 'noopener');
+  const statuses = getStatuses();
+  statuses[url] = 'Applied';
+  localStorage.setItem('vacancyStatuses', JSON.stringify(statuses));
+  markSeen(url);
+  renderFilters();
+  render();
+  updateMarkAllSeenBtn();
+  updateTabTitle();
+  if (statsVisible) renderStats();
+  microToast('Applied! Відкрито у новій вкладці');
+}
+
+function microToast(msg) {
+  const el = document.createElement('div');
+  el.className = 'micro-toast';
+  el.textContent = msg;
+  document.body.appendChild(el);
+  requestAnimationFrame(() => el.classList.add('visible'));
+  setTimeout(() => { el.classList.remove('visible'); setTimeout(() => el.remove(), 300); }, 2500);
+}
 
 // Notes tracking via localStorage
 function getNotes() {
@@ -928,7 +1465,7 @@ function applyPendingData() {
 }
 
 function renderFilters() {
-  const scores = {all:0, hot:0, ok:0, skip:0, new:0, fav:0, notes:0, applied:0, interview:0, offer:0, rejected:0};
+  const scores = {all:0, hot:0, ok:0, skip:0, new:0, fav:0, notes:0, applied:0, interview:0, offer:0, rejected:0, salary:0};
   const favs = getFavUrls();
   const statuses = getStatuses();
   const notes = getNotes();
@@ -939,6 +1476,7 @@ function renderFilters() {
       if (isNew(v.url)) scores.new++;
       if (favs.has(v.url)) scores.fav++;
       if (notes[v.url]) scores.notes++;
+      if (parseSalaryUSD(v.salary) > 0) scores.salary++;
       const st = statuses[v.url];
       if (st === 'Applied') scores.applied++;
       else if (st === 'Interview') scores.interview++;
@@ -961,20 +1499,65 @@ function renderFilters() {
     fb('ok','OK',scores.ok) +
     fb('skip','Skip',scores.skip) +
     fb('notes','Notes',scores.notes) +
+    fb('salary','$ Salary',scores.salary) +
     fb('pipeline','Pipeline',pipelineCount) +
     `<button class="filter-btn ${statsVisible?'active':''}" onclick="toggleStats()">${IC.barChart} Stats</button>`;
+  updateFilterScrollFade();
 }
 
-function setFilter(f) { activeFilter = f; renderFilters(); render(); }
+function updateFilterScrollFade() {
+  const wrap = document.getElementById('filtersWrap');
+  if (!wrap) return;
+  const el = filtersEl;
+  const scrollable = el.scrollWidth > el.clientWidth + 2 && el.scrollLeft + el.clientWidth < el.scrollWidth - 2;
+  wrap.classList.toggle('scrollable', scrollable);
+}
+
+function setFilter(f) { activeFilter = f; localStorage.setItem('activeFilter', f); renderFilters(); render(); }
 
 function setSort(s) {
   activeSort = s;
+  localStorage.setItem('activeSort', s);
   document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
   document.querySelector(`.sort-btn[onclick="setSort('${s}')"]`).classList.add('active');
   render();
 }
 
-function onSearch(q) { searchQuery = q.toLowerCase().trim(); render(); }
+function onSearch(q) {
+  searchQuery = q.toLowerCase().trim();
+  localStorage.setItem('searchQuery', q.trim());
+  updateSearchIndicators();
+  render();
+}
+function updateSearchIndicators() {
+  const hasQuery = searchQuery.length > 0;
+  const wrap = document.getElementById('searchWrap');
+  const btn = document.getElementById('searchBtn');
+  if (wrap) wrap.classList.toggle('has-value', hasQuery);
+  if (btn) btn.classList.toggle('has-query', hasQuery);
+}
+function toggleSearchInput(e) {
+  if (e) e.stopPropagation();
+  const toolbar = document.querySelector('.toolbar');
+  const btn = document.getElementById('searchBtn');
+  const input = document.getElementById('searchBox');
+  const isActive = toolbar.classList.contains('search-active');
+  if (isActive) {
+    toolbar.classList.remove('search-active');
+    btn.classList.remove('active');
+    input.blur();
+  } else {
+    toolbar.classList.add('search-active');
+    btn.classList.add('active');
+    setTimeout(() => input.focus(), 50);
+  }
+}
+function clearSearch() {
+  const input = document.getElementById('searchBox');
+  input.value = '';
+  onSearch('');
+  input.focus();
+}
 
 function setView(mode) {
   activeView = mode;
@@ -994,6 +1577,27 @@ function parseDate(v) {
   return 0;
 }
 
+function parseSalaryUSD(salary) {
+  if (!salary || salary === 'Не вказана' || /конкурент|не вказан|не указан/i.test(salary)) return 0;
+  const s = salary.replace(/\s/g, '').replace(/,/g, '');
+  // Find all numbers
+  const nums = [...s.matchAll(/[\d]+/g)].map(m => parseInt(m[0]));
+  if (!nums.length) return 0;
+  // Take the max number as the upper bound
+  let max = Math.max(...nums);
+  // Detect currency and period
+  const isEur = /€|eur/i.test(s);
+  const isUAH = /uah|грн|₴/i.test(s);
+  const isYear = /рік|year|yr|\/рік|annual/i.test(s);
+  const isHour = /год|hour|hr|\/год/i.test(s);
+  // Convert to monthly USD
+  if (isYear) max = Math.round(max / 12);
+  if (isHour) max = Math.round(max * 160); // ~160 hrs/month
+  if (isEur) max = Math.round(max * 1.08); // approx EUR->USD
+  if (isUAH) max = Math.round(max / 41); // approx UAH->USD
+  return max;
+}
+
 function sortItems(items) {
   if (activeSort === 'default') return items;
   const sorted = [...items];
@@ -1001,6 +1605,8 @@ function sortItems(items) {
     sorted.sort((a, b) => (b.score ?? -1) - (a.score ?? -1));
   } else if (activeSort === 'date') {
     sorted.sort((a, b) => parseDate(b) - parseDate(a));
+  } else if (activeSort === 'salary') {
+    sorted.sort((a, b) => parseSalaryUSD(b.salary) - parseSalaryUSD(a.salary));
   }
   return sorted;
 }
@@ -1034,6 +1640,7 @@ function passFilter(v) {
   if (activeFilter === 'skip') return v.score !== null && v.score < 4;
   if (activeFilter === 'notes') return hasNote(v.url);
   if (activeFilter === 'pipeline') return !!getStatus(v.url);
+  if (activeFilter === 'salary') return parseSalaryUSD(v.salary) > 0;
   return true;
 }
 
@@ -1042,6 +1649,17 @@ function scoreClass(s) {
   if (s >= 6) return 'score-high';
   if (s >= 4) return 'score-mid';
   return 'score-low';
+}
+
+function typeClass(type) {
+  if (!type) return '';
+  const t = type.toLowerCase();
+  if (/gambling|casino|betting|igaming|crypto|web3/.test(t)) return 'tag-type-gambling';
+  if (/продукт|product|saas|fintech|фінтех|b2b|b2c|proptech|healthc|edtech|devops|медіа|dating|ecommerce|рітейл/.test(t)) return 'tag-type-product';
+  if (/аутсорс|outsourc|аутстаф|консалт/.test(t)) return 'tag-type-outsource';
+  if (/агенці|agency|студі|studio|дизайн-/.test(t)) return 'tag-type-agency';
+  if (/стартап|startup|венчур/.test(t)) return 'tag-type-startup';
+  return '';
 }
 
 function parseDateToObj(v) {
@@ -1117,22 +1735,25 @@ function render() {
     if (!filtered.length) continue;
     total += filtered.length;
 
-    html += `<div class="section">
-      <div class="section-hdr">${esc(section.name)}<span class="section-count">${filtered.length}</span></div>`;
+    const isCollapsed = isSectionCollapsed(section.name);
+    html += `<div class="section${isCollapsed ? ' collapsed' : ''}" data-section="${escA(section.name)}">
+      <div class="section-hdr" onclick="toggleSection('${escA(section.name)}')"><span class="section-left"><svg class="section-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>${esc(section.name)}</span><span class="section-count">${filtered.length}</span></div>
+      <div class="section-cards">`;
 
     for (const v of filtered) {
       const sc = v.score !== null ? v.score + '/10' : '?';
       const isOpen = openCards.has(v.url);
 
       html += `
-      <div class="card ${isOpen ? 'open' : ''}${isStale(v) ? ' stale' : ''}" data-url="${escA(v.url)}">
+      <div class="card ${isOpen ? 'open' : ''}${isStale(v) ? ' stale' : ''}${selectedUrls.has(v.url) ? ' selected' : ''}" data-url="${escA(v.url)}">
         <div class="card-header" onclick="toggle(this)">
+          <div class="card-checkbox ${selectedUrls.has(v.url)?'checked':''}" onclick="event.stopPropagation(); toggleSelect('${escA(v.url)}')"></div>
           <div class="chevron">${IC.chevDown}</div>
-          <div class="score-badge ${scoreClass(v.score)}">${sc}</div>
+          <div class="score-badge ${scoreClass(v.score)}">${sc}${v.summary ? `<div class="score-tip">${esc(v.summary)}</div>` : ''}</div>
           <div class="card-info">
             <a class="card-title" href="${escA(v.url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${searchQuery ? highlightText(v.title, searchQuery) : esc(v.title)}</a>
             <div class="card-meta">
-              ${v.type ? `<span class="tag">${searchQuery ? highlightText(v.type, searchQuery) : esc(v.type)}</span>` : ''}
+              ${v.type ? `<span class="tag ${typeClass(v.type)}">${searchQuery ? highlightText(v.type, searchQuery) : esc(v.type)}</span>` : ''}
               ${v.remote ? `<span class="tag">${searchQuery ? highlightText(v.remote, searchQuery) : esc(v.remote)}</span>` : ''}
               ${v.salary && v.salary !== 'Не вказана' ? `<span class="tag tag-salary">${searchQuery ? highlightText(v.salary, searchQuery) : esc(v.salary)}</span>` : ''}
               ${getDateTag(v)}
@@ -1144,6 +1765,7 @@ function render() {
             </div>
           </div>
           <div class="card-actions">
+            ${!getStatus(v.url) ? `<button class="btn-apply" onclick="event.stopPropagation(); quickApply('${escA(v.url)}')" title="Відкрити та позначити Applied">${IC.send} Apply</button>` : ''}
             <select class="status-sel" onclick="event.stopPropagation()" onchange="setStatus('${escA(v.url)}', this.value)" title="Статус">
               ${STATUS_OPTIONS.map(s => `<option value="${s}"${(getStatus(v.url)||'Status')===s?' selected':''}>${s}</option>`).join('')}
             </select>
@@ -1166,7 +1788,7 @@ function render() {
         </div>
       </div>`;
     }
-    html += '</div>';
+    html += '</div></div>';
   }
 
   if (!total) html = '<div class="empty">Нічого не знайдено</div>';
@@ -1206,27 +1828,85 @@ function toggle(hdr) {
   }
 }
 
-async function del(btn) {
+// Undo-able delete system
+let pendingDelete = null; // {urls: [], timer: id, snackbarEl: el}
+
+function del(btn) {
   const card = btn.closest('.card');
   const url = card.dataset.url;
-  if (!confirm('Видалити вакансію?')) return;
-  card.classList.add('deleting');
-  openCards.delete(url);
-  try {
-    const r = await fetch('/api/vacancies', {
-      method:'DELETE', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({url})
-    });
-    if (r.ok) setTimeout(load, 350);
-    else { card.classList.remove('deleting'); alert('Помилка'); }
-  } catch(e) { card.classList.remove('deleting'); alert('Нема зв\'язку'); }
+  scheduleDelete([url]);
+}
+
+function scheduleDelete(urls) {
+  // Cancel any previous pending delete (execute it immediately)
+  if (pendingDelete) commitDelete();
+
+  // Visually hide the cards
+  urls.forEach(url => {
+    const card = document.querySelector(`.card[data-url="${CSS.escape(url)}"]`);
+    if (card) card.classList.add('pending-delete');
+  });
+
+  const label = urls.length === 1 ? 'Вакансію видалено' : `Видалено ${urls.length} вакансій`;
+  const snackbarEl = document.createElement('div');
+  snackbarEl.className = 'undo-snackbar';
+  snackbarEl.innerHTML = `<div class="undo-timer"></div><span>${esc(label)}</span><button class="undo-btn" onclick="undoDelete()">Undo</button>`;
+  document.body.appendChild(snackbarEl);
+  requestAnimationFrame(() => snackbarEl.classList.add('visible'));
+
+  const timer = setTimeout(() => commitDelete(), 5000);
+  pendingDelete = { urls, timer, snackbarEl };
+}
+
+function undoDelete() {
+  if (!pendingDelete) return;
+  clearTimeout(pendingDelete.timer);
+  // Restore cards
+  pendingDelete.urls.forEach(url => {
+    const card = document.querySelector(`.card[data-url="${CSS.escape(url)}"]`);
+    if (card) card.classList.remove('pending-delete');
+  });
+  dismissSnackbar(pendingDelete.snackbarEl);
+  pendingDelete = null;
+}
+
+async function commitDelete() {
+  if (!pendingDelete) return;
+  const { urls, snackbarEl } = pendingDelete;
+  clearTimeout(pendingDelete.timer);
+  pendingDelete = null;
+  dismissSnackbar(snackbarEl);
+
+  // Animate out and delete
+  urls.forEach(url => {
+    const card = document.querySelector(`.card[data-url="${CSS.escape(url)}"]`);
+    if (card) { card.classList.remove('pending-delete'); card.classList.add('deleting'); }
+    openCards.delete(url);
+  });
+
+  for (const url of urls) {
+    try {
+      await fetch('/api/vacancies', {
+        method: 'DELETE', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({url})
+      });
+    } catch(e) { /* continue */ }
+  }
+  setTimeout(load, 350);
+}
+
+function dismissSnackbar(el) {
+  if (!el) return;
+  el.classList.remove('visible');
+  setTimeout(() => el.remove(), 300);
 }
 
 function status(s) {
   const sb = document.getElementById('statusBar');
+  const lc = lastCheckText ? `<span class="last-check">${lastCheckText}</span>` : '';
   sb.innerHTML = s === 'ok'
-    ? `<span class="dot dot-ok"></span> Підключено <span class="kb-hint" onclick="showKbHelp()" title="Keyboard shortcuts">${IC.keyboard}</span>`
-    : `<span class="dot dot-err"></span> Немає зв'язку <span class="kb-hint" onclick="showKbHelp()" title="Keyboard shortcuts">${IC.keyboard}</span>`;
+    ? `<span class="dot dot-ok"></span> Підключено${lc} <span class="kb-hint" onclick="showKbHelp()" title="Keyboard shortcuts">${IC.keyboard}</span>`
+    : `<span class="dot dot-err"></span> Немає зв'язку${lc} <span class="kb-hint" onclick="showKbHelp()" title="Keyboard shortcuts">${IC.keyboard}</span>`;
 }
 
 function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -1312,6 +1992,99 @@ function updateHideStaleBtn() {
   }
 }
 
+// Batch select mode
+function toggleSelectMode() {
+  selectMode = !selectMode;
+  if (!selectMode) selectedUrls.clear();
+  document.getElementById('app').classList.toggle('select-mode', selectMode);
+  document.getElementById('selectModeBtn').classList.toggle('toggled', selectMode);
+  updateBulkBar();
+  render();
+}
+
+function toggleSelect(url) {
+  if (!selectMode) return;
+  if (selectedUrls.has(url)) selectedUrls.delete(url);
+  else selectedUrls.add(url);
+  // Update checkbox visually without full re-render
+  const card = document.querySelector(`.card[data-url="${CSS.escape(url)}"]`);
+  if (card) {
+    const cb = card.querySelector('.card-checkbox');
+    if (cb) cb.classList.toggle('checked', selectedUrls.has(url));
+    card.classList.toggle('selected', selectedUrls.has(url));
+  }
+  updateBulkBar();
+}
+
+function clearSelection() {
+  selectedUrls.clear();
+  document.querySelectorAll('.card.selected').forEach(c => c.classList.remove('selected'));
+  document.querySelectorAll('.card-checkbox.checked').forEach(c => c.classList.remove('checked'));
+  updateBulkBar();
+}
+
+function selectAllVisible() {
+  const cards = getVisibleCards();
+  cards.forEach(c => {
+    const url = c.dataset.url;
+    selectedUrls.add(url);
+    c.classList.add('selected');
+    const cb = c.querySelector('.card-checkbox');
+    if (cb) cb.classList.add('checked');
+  });
+  updateBulkBar();
+}
+
+function updateBulkBar() {
+  const bar = document.getElementById('bulkBar');
+  const count = selectedUrls.size;
+  bar.classList.toggle('visible', selectMode && count > 0);
+  document.getElementById('bulkCount').textContent = `${count} обрано`;
+}
+
+function bulkDelete() {
+  const count = selectedUrls.size;
+  if (!count) return;
+  const urls = [...selectedUrls];
+  selectedUrls.clear();
+  updateBulkBar();
+  scheduleDelete(urls);
+}
+
+function bulkFavorite() {
+  const favs = getFavUrls();
+  for (const url of selectedUrls) favs.add(url);
+  localStorage.setItem('favUrls', JSON.stringify([...favs]));
+  selectedUrls.clear();
+  updateBulkBar();
+  renderFilters();
+  render();
+  if (statsVisible) renderStats();
+}
+
+function toggleBulkPipeline(e) {
+  e.stopPropagation();
+  const menu = document.getElementById('bulkPipelineMenu');
+  menu.classList.toggle('visible');
+}
+function bulkSetStatus(status) {
+  const statuses = getStatuses();
+  for (const url of selectedUrls) {
+    if (status) statuses[url] = status; else delete statuses[url];
+  }
+  localStorage.setItem('vacancyStatuses', JSON.stringify(statuses));
+  document.getElementById('bulkPipelineMenu').classList.remove('visible');
+  selectedUrls.clear();
+  updateBulkBar();
+  renderFilters();
+  render();
+  if (statsVisible) renderStats();
+}
+document.addEventListener('click', () => {
+  const menu = document.getElementById('bulkPipelineMenu');
+  if (menu) menu.classList.remove('visible');
+});
+
 let statsVisible = false;
 function toggleStats() {
   statsVisible = !statsVisible;
@@ -1320,10 +2093,59 @@ function toggleStats() {
   if (statsVisible) renderStats();
 }
 
+function buildActivityChart() {
+  const days = 14;
+  const now = new Date(); now.setHours(0,0,0,0);
+  const buckets = new Array(days).fill(0);
+  const labels = [];
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(now); d.setDate(d.getDate() - i);
+    labels.push(d.toLocaleDateString('uk', {day:'numeric', month:'short'}).replace(/\.$/, ''));
+  }
+  for (const s of allData) {
+    if (SKIP.includes(s.name)) continue;
+    for (const v of s.items) {
+      const dt = parseDateToObj(v);
+      if (!dt) continue;
+      const diff = Math.floor((now - dt) / 86400000);
+      if (diff >= 0 && diff < days) buckets[days - 1 - diff]++;
+    }
+  }
+  const max = Math.max(...buckets, 1);
+  const totalPeriod = buckets.reduce((a,b) => a+b, 0);
+  const thisWeek = buckets.slice(days - 7).reduce((a,b) => a+b, 0);
+  const lastWeek = buckets.slice(days - 14, days - 7).reduce((a,b) => a+b, 0);
+  const trend = lastWeek > 0 ? Math.round((thisWeek - lastWeek) / lastWeek * 100) : (thisWeek > 0 ? 100 : 0);
+  const trendIcon = trend > 0 ? '\u2191' : trend < 0 ? '\u2193' : '\u2192';
+  const trendColor = trend > 0 ? 'var(--green-bright)' : trend < 0 ? 'var(--red)' : 'var(--muted)';
+  let barsHtml = '';
+  for (let i = 0; i < days; i++) {
+    const h = buckets[i] > 0 ? Math.max(4, Math.round(buckets[i] / max * 40)) : 0;
+    const isToday = i === days - 1;
+    const showLabel = i === 0 || i === days - 1 || i === 7;
+    barsHtml += `<div class="activity-bar-wrap" title="${labels[i]}: ${buckets[i]} вакансій">
+      <div class="activity-bar${isToday ? ' today' : ''}" style="height:${h}px"></div>
+      ${showLabel ? `<div class="activity-bar-label">${labels[i]}</div>` : ''}
+    </div>`;
+  }
+  return `<div class="stat-card wide">
+    <div class="stat-label">Активність за 14 днів</div>
+    <div class="activity-chart">${barsHtml}</div>
+    <div class="activity-summary">
+      <span>Всього: <b>${totalPeriod}</b></span>
+      <span>Цей тиждень: <b>${thisWeek}</b></span>
+      <span style="color:${trendColor}">${trendIcon} ${Math.abs(trend)}% vs минулий</span>
+    </div>
+  </div>`;
+}
+
 function renderStats() {
   let total = 0, scored = 0, sumScore = 0, favCount = 0, noteCount = 0;
   let high = 0, mid = 0, low = 0, none = 0;
+  let salaryCount = 0, salaryMax = 0, salaryMin = Infinity;
+  const salaryValues = [];
   const sources = {};
+  const typeCounts = {product:0, outsource:0, agency:0, gambling:0, startup:0, other:0};
   const favs = getFavUrls();
   const statuses = getStatuses();
   const notesData = getNotes();
@@ -1334,13 +2156,25 @@ function renderStats() {
       total++;
       if (favs.has(v.url)) favCount++;
       if (notesData[v.url]) noteCount++;
+      const sal = parseSalaryUSD(v.salary);
+      if (sal > 0) { salaryCount++; salaryValues.push(sal); if (sal > salaryMax) salaryMax = sal; if (sal < salaryMin) salaryMin = sal; }
       const st = statuses[v.url];
       if (st && pipeline.hasOwnProperty(st)) pipeline[st]++;
       sources[s.name] = (sources[s.name] || 0) + 1;
       if (v.score === null) { none++; }
       else { scored++; sumScore += v.score; if (v.score >= 6) high++; else if (v.score >= 4) mid++; else low++; }
+      const tc = typeClass(v.type);
+      if (tc === 'tag-type-product') typeCounts.product++;
+      else if (tc === 'tag-type-outsource') typeCounts.outsource++;
+      else if (tc === 'tag-type-agency') typeCounts.agency++;
+      else if (tc === 'tag-type-gambling') typeCounts.gambling++;
+      else if (tc === 'tag-type-startup') typeCounts.startup++;
+      else if (v.type) typeCounts.other++;
     }
   }
+  if (salaryMin === Infinity) salaryMin = 0;
+  const salaryAvg = salaryCount ? Math.round(salaryValues.reduce((a,b) => a+b, 0) / salaryCount) : 0;
+  const fmtUSD = (n) => n >= 1000 ? '$' + (n/1000).toFixed(1) + 'k' : '$' + n;
   const avg = scored ? (sumScore / scored).toFixed(1) : '—';
   const pct = (n) => total ? (n / total * 100).toFixed(0) : 0;
   const pipelineTotal = pipeline.Applied + pipeline.Interview + pipeline.Offer + pipeline.Rejected;
@@ -1369,6 +2203,11 @@ function renderStats() {
         <div class="stat-value" style="color:var(--accent)">${noteCount}</div>
       </div>
       <div class="stat-card">
+        <div class="stat-label">Із зарплатою</div>
+        <div class="stat-value" style="color:var(--green-bright)">${salaryCount}</div>
+        ${salaryCount ? `<div style="font-size:11px;color:var(--muted);margin-top:4px">${fmtUSD(salaryMin)} — ${fmtUSD(salaryMax)}<br>avg ${fmtUSD(salaryAvg)}/mo</div>` : ''}
+      </div>
+      <div class="stat-card">
         <div class="stat-label">Pipeline</div>
         <div class="stat-value">${pipelineTotal}</div>
         <div class="sources-list" style="margin-top:6px">
@@ -1394,9 +2233,21 @@ function renderStats() {
         </div>
       </div>
       <div class="stat-card wide">
+        <div class="stat-label">Типи компаній</div>
+        <div class="sources-list">
+          ${typeCounts.product ? `<span class="source-chip" style="color:var(--green-bright)">Product<b>${typeCounts.product}</b></span>` : ''}
+          ${typeCounts.outsource ? `<span class="source-chip" style="color:var(--yellow)">Outsource<b>${typeCounts.outsource}</b></span>` : ''}
+          ${typeCounts.agency ? `<span class="source-chip" style="color:#e0a0ff">Agency<b>${typeCounts.agency}</b></span>` : ''}
+          ${typeCounts.startup ? `<span class="source-chip" style="color:#60d0f0">Startup<b>${typeCounts.startup}</b></span>` : ''}
+          ${typeCounts.gambling ? `<span class="source-chip" style="color:var(--red)">Gambling<b>${typeCounts.gambling}</b></span>` : ''}
+          ${typeCounts.other ? `<span class="source-chip" style="color:var(--muted)">Other<b>${typeCounts.other}</b></span>` : ''}
+        </div>
+      </div>
+      <div class="stat-card wide">
         <div class="stat-label">Джерела</div>
         <div class="sources-list">${sourcesHtml}</div>
       </div>
+      ${buildActivityChart()}
     </div>`;
 }
 
@@ -1431,12 +2282,17 @@ function showKbHelp() {
     <div class="kb-row"><span class="kb-key">k</span><span class="kb-desc">Попередня вакансія</span></div>
     <div class="kb-row"><span class="kb-key">Enter</span><span class="kb-desc">Розгорнути / згорнути</span></div>
     <div class="kb-row"><span class="kb-key">o</span><span class="kb-desc">Відкрити посилання</span></div>
+    <div class="kb-row"><span class="kb-key">a</span><span class="kb-desc">Quick Apply (відкрити + Applied)</span></div>
     <div class="kb-row"><span class="kb-key">f</span><span class="kb-desc">Додати в обране</span></div>
     <div class="kb-row"><span class="kb-key">s</span><span class="kb-desc">Змінити статус (pipeline)</span></div>
     <div class="kb-row"><span class="kb-key">n</span><span class="kb-desc">Редагувати нотатку</span></div>
     <div class="kb-row"><span class="kb-key">x</span><span class="kb-desc">Видалити вакансію</span></div>
+    <div class="kb-row"><span class="kb-key">z</span><span class="kb-desc">Скасувати видалення (undo)</span></div>
     <div class="kb-row"><span class="kb-key">v</span><span class="kb-desc">Перемкнути вигляд (картки/список)</span></div>
     <div class="kb-row"><span class="kb-key">h</span><span class="kb-desc">Сховати/показати застарілі</span></div>
+    <div class="kb-row"><span class="kb-key">c</span><span class="kb-desc">Згорнути/розгорнути секцію</span></div>
+    <div class="kb-row"><span class="kb-key">Space</span><span class="kb-desc">Виділити/зняти (режим виділення)</span></div>
+    <div class="kb-row"><span class="kb-key">Ctrl+A</span><span class="kb-desc">Виділити всі видимі (режим виділення)</span></div>
     <div class="kb-row"><span class="kb-key">/</span><span class="kb-desc">Фокус на пошук</span></div>
     <div class="kb-row"><span class="kb-key">?</span><span class="kb-desc">Показати цю довідку</span></div>
     <div class="kb-row"><span class="kb-key">Esc</span><span class="kb-desc">Закрити / зняти фокус</span></div>
@@ -1511,21 +2367,50 @@ document.addEventListener('keydown', (e) => {
         if (btn) del(btn);
       }
       break;
+    case 'z':
+      undoDelete();
+      break;
     case 'v':
       setView(activeView === 'card' ? 'list' : 'card');
       break;
     case 'h':
       toggleHideStale();
       break;
+    case 'c':
+      if (focusIdx >= 0 && focusIdx < cards.length) {
+        const section = cards[focusIdx].closest('.section');
+        if (section) toggleSection(section.dataset.section);
+      }
+      break;
+    case ' ':
+      if (selectMode && focusIdx >= 0 && focusIdx < cards.length) {
+        e.preventDefault();
+        toggleSelect(cards[focusIdx].dataset.url);
+      }
+      break;
+    case 'a':
+      if (selectMode && e.ctrlKey) {
+        e.preventDefault();
+        selectAllVisible();
+      } else if (!selectMode && !e.ctrlKey && focusIdx >= 0 && focusIdx < cards.length) {
+        const url = cards[focusIdx].dataset.url;
+        if (url && !getStatus(url)) quickApply(url);
+      }
+      break;
     case '/':
       e.preventDefault();
-      document.getElementById('searchBox').focus();
+      if (window.innerWidth <= 599 && !document.querySelector('.toolbar').classList.contains('search-active')) {
+        toggleSearchInput();
+      } else {
+        document.getElementById('searchBox').focus();
+      }
       break;
     case '?':
       e.preventDefault();
       showKbHelp();
       break;
     case 'Escape':
+      if (selectMode) { toggleSelectMode(); break; }
       // Clear focus
       cards.forEach(c => c.classList.remove('kb-focus'));
       focusIdx = -1;
@@ -1573,12 +2458,96 @@ function exportCSV() {
   URL.revokeObjectURL(url);
 }
 
+// Sticky header detection — add .stuck class when header is pinned
+function observeStickyHeaders() {
+  document.querySelectorAll('.section-hdr').forEach(hdr => {
+    const observer = new IntersectionObserver(
+      ([entry]) => { hdr.classList.toggle('stuck', entry.intersectionRatio < 1); },
+      { threshold: [1], rootMargin: '-1px 0px 0px 0px' }
+    );
+    observer.observe(hdr);
+  });
+}
+
+// Re-observe after each render
+const origRender = render;
+render = function() { origRender(); observeStickyHeaders(); };
+
 load();
 setInterval(poll, REFRESH);
 // Restore saved view mode
 if (activeView === 'list') setView('list');
 // Restore hide-stale toggle state
 if (hideStale) document.getElementById('hideStaleBtn').classList.add('toggled');
+// Restore saved sort mode
+if (activeSort !== 'default') {
+  document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.querySelector(`.sort-btn[onclick="setSort('${activeSort}')"]`);
+  if (btn) btn.classList.add('active');
+}
+// Restore saved search query
+if (savedSearch) {
+  const sb = document.getElementById('searchBox');
+  if (sb) {
+    sb.value = savedSearch;
+    searchQuery = savedSearch.toLowerCase();
+    updateSearchIndicators();
+    // On mobile, auto-expand search if there's a saved query
+    if (window.innerWidth <= 599) {
+      document.querySelector('.toolbar').classList.add('search-active');
+      document.getElementById('searchBtn').classList.add('active');
+    }
+  }
+}
+// Filters scroll fade indicator
+filtersEl.addEventListener('scroll', updateFilterScrollFade, { passive: true });
+window.addEventListener('resize', updateFilterScrollFade);
+
+// Search input: Esc clears query (and collapses on mobile); blur closes empty on mobile
+document.getElementById('searchBox').addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    e.preventDefault();
+    if (e.target.value) {
+      clearSearch();
+    } else if (window.innerWidth <= 599) {
+      toggleSearchInput();
+    } else {
+      e.target.blur();
+    }
+  }
+});
+
+// Mobile "More" menu — shows action-row in a popup
+function toggleMoreMenu(e) {
+  if (e) e.stopPropagation();
+  const menu = document.getElementById('actionsRow');
+  const backdrop = document.getElementById('moreBackdrop');
+  const btn = document.getElementById('moreBtn');
+  const isOpen = menu.classList.contains('open');
+  if (isOpen) closeMoreMenu();
+  else {
+    menu.classList.add('open');
+    backdrop.classList.add('visible');
+    btn.classList.add('open');
+  }
+}
+function closeMoreMenu() {
+  document.getElementById('actionsRow').classList.remove('open');
+  document.getElementById('moreBackdrop').classList.remove('visible');
+  document.getElementById('moreBtn').classList.remove('open');
+}
+// Auto-close more menu when an action inside is tapped (mobile only)
+document.getElementById('actionsRow').addEventListener('click', (e) => {
+  if (window.innerWidth > 599) return;
+  const btn = e.target.closest('.action-btn');
+  if (btn) setTimeout(closeMoreMenu, 120);
+});
+// Close more menu on Esc
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && document.getElementById('actionsRow').classList.contains('open')) {
+    closeMoreMenu();
+  }
+});
 </script>
 </body>
 </html>

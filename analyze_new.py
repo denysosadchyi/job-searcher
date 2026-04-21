@@ -26,7 +26,7 @@ _config_key = ""
 try:
     from config import GROQ_API_KEY as _config_key
 except ImportError:
-    pass
+    pass  # config.py optional — falls back to GROQ_API_KEY env var
 GROQ_KEY = os.environ.get("GROQ_API_KEY", "") or _config_key
 GROQ_MODEL = "llama-3.3-70b-versatile"
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
@@ -40,28 +40,28 @@ SKIP_PATTERNS = [
 
 
 class TextExtractor(HTMLParser):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
-        self.text = []
+        self.text: list[str] = []
         self.skip = False
 
-    def handle_starttag(self, tag, attrs):
+    def handle_starttag(self, tag: str, attrs: list) -> None:
         if tag in ('script', 'style', 'nav', 'footer', 'header'):
             self.skip = True
 
-    def handle_endtag(self, tag):
+    def handle_endtag(self, tag: str) -> None:
         if tag in ('script', 'style', 'nav', 'footer', 'header'):
             self.skip = False
 
-    def handle_data(self, data):
+    def handle_data(self, data: str) -> None:
         if not self.skip:
             self.text.append(data.strip())
 
-    def get_text(self):
+    def get_text(self) -> str:
         return '\n'.join(t for t in self.text if t)
 
 
-def fetch_page(url):
+def fetch_page(url: str) -> str:
     """Fetch a URL and return text content."""
     try:
         req = urllib.request.Request(url, headers={
@@ -77,11 +77,11 @@ def fetch_page(url):
         return f"Failed to fetch: {e}"
 
 
-def is_aggregate_url(url):
+def is_aggregate_url(url: str) -> bool:
     return any(p in url for p in SKIP_PATTERNS)
 
 
-def analyze_with_groq(vacancy_title, vacancy_url, page_text, profile):
+def analyze_with_groq(vacancy_title: str, vacancy_url: str, page_text: str, profile: str) -> dict | None:
     """Call Groq API (Llama 3.3 70B) to analyze a vacancy."""
     if not GROQ_KEY:
         print(f"  [SKIP] No Groq API key")

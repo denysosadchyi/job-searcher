@@ -19,6 +19,7 @@ except ImportError:
 MD_FILE = os.path.join(BASE_DIR, "vacancies.md")
 ANALYSES_FILE = os.path.join(BASE_DIR, "analyses.json")
 CHANGELOG_FILE = os.path.join(BASE_DIR, "changelog.md")
+LOG_FILE = os.path.join(BASE_DIR, "check.log")
 
 
 def load_analyses():
@@ -28,7 +29,7 @@ def load_analyses():
     return {}
 
 
-def save_analyses(data):
+def save_analyses(data: dict) -> None:
     with open(ANALYSES_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
@@ -74,7 +75,7 @@ def parse_vacancies():
     return sections
 
 
-def remove_vacancy(url):
+def remove_vacancy(url: str) -> bool:
     with open(MD_FILE, "r", encoding="utf-8") as f:
         lines = f.readlines()
 
@@ -109,6 +110,23 @@ def api_config():
     except ImportError:
         PAGE_TITLE = "Вакансії"
     return jsonify({"page_title": PAGE_TITLE})
+
+
+@app.route("/api/last-check")
+def api_last_check():
+    if not os.path.exists(LOG_FILE):
+        return jsonify({"last_check": None})
+    try:
+        with open(LOG_FILE, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+        # Find last "Starting vacancy check" line for the actual scan time
+        for line in reversed(lines):
+            m = re.match(r"\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\]", line)
+            if m:
+                return jsonify({"last_check": m.group(1)})
+    except Exception:
+        pass
+    return jsonify({"last_check": None})
 
 
 @app.route("/api/changelog")

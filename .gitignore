@@ -8,3 +8,11 @@ __pycache__/
 *.pyc
 .claude/
 .env
+.venv/
+venv/
+env/
+.DS_Store
+.pytest_cache/
+.coverage
+htmlcov/
+job-searcher.md
