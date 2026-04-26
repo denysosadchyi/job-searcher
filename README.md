@@ -2,7 +2,7 @@
 
 Автоматизований пошук вакансій з AI-аналізом та веб-дашбордом.
 
-<img width="1089" height="721" alt="image" src="https://github.com/user-attachments/assets/30fa833f-6116-4bea-8e9a-2f221bc547ba" />
+<img width="1118" height="872" alt="image" src="https://github.com/user-attachments/assets/e3a4bb91-7e83-4b4b-8fec-1ad3124444c4" />
 
 ## Що робить
 
