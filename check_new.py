@@ -75,28 +75,31 @@ def check_djinni():
     log("Checking Djinni...")
     url = SOURCES.get("Djinni", {}).get("url", "https://djinni.co/jobs/keyword-ui_ux/")
     html = fetch_html(url)
-    if not html:
-        return []
-
-    existing = get_existing_urls()
-    results = []
-
-    for m in re.finditer(r'<a[^>]*href="(/jobs/(\d+)-[^"]*?)"[^>]*>', html):
-        path = m.group(1)
-        url = f"https://djinni.co{path}"
-        if url in existing:
-            continue
-
-        start = m.end()
-        chunk = html[start:start + 500]
-        title_m = re.search(r'>([^<]{10,})<', chunk)
-        if title_m:
-            title = title_m.group(1).strip()
-            if is_relevant(title):
-                results.append({"title": title, "url": url, "section": "Djinni.co"})
-
+    results = _djinni_results(html) if html else []
     log(f"  Found {len(results)} new on Djinni")
     return results
+
+
+def _djinni_results(html: str) -> list:
+    """Extract new, relevant Djinni vacancies from JSON-LD title/url pairs."""
+    existing = get_existing_urls()
+    pattern = r'"title":\s*"([^"]+)",\s*"url":\s*"(https://djinni\.co/jobs/\d+-[^"]+)"'
+    results, seen = [], set()
+    for raw_title, url in re.findall(pattern, html):
+        title = _json_unescape(raw_title)
+        if url in existing or url in seen or not is_relevant(title):
+            continue
+        seen.add(url)
+        results.append({"title": title, "url": url, "section": "Djinni.co"})
+    return results
+
+
+def _json_unescape(text: str) -> str:
+    r"""Decode JSON string escapes (e.g. –) found in a JSON-LD title."""
+    try:
+        return json.loads(f'"{text}"')
+    except ValueError:
+        return text
 
 
 def check_dou():
